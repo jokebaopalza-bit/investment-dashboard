@@ -340,7 +340,19 @@ const API_BASE = window.location.hostname.includes('github.io') ? 'https://exper
 
 function getPortfolio() {
   const d = localStorage.getItem('joke_portfolio');
-  if (d) { portfolio = JSON.parse(d); }
+  if (d) {
+    try { portfolio = JSON.parse(d); } catch(e) { portfolio = []; }
+    // Migration: assign default source for old data without source
+    const DEFAULT_SOURCE = { SET: 'KKP', US: 'DIME', MUTUAL: 'KRUNGSRI', LTF: 'KRUNGSRI', CRYPTO: 'BITKUB', GOLD: 'DIME', BOND: 'KKP', CASH: 'KKP' };
+    let changed = false;
+    for (const p of portfolio) {
+      if (!p.source) {
+        p.source = DEFAULT_SOURCE[p.assetClass] || 'KKP';
+        changed = true;
+      }
+    }
+    if (changed) savePortfolio();
+  }
   return portfolio;
 }
 function savePortfolio() {
