@@ -340,6 +340,7 @@ let targets = { SET: 20, US: 20, CRYPTO: 10, GOLD: 10, BOND: 30, CASH: 10 };
 let fxRate = 35;
 let editingId = null;
 let priceCache = {};
+const API_BASE = window.location.hostname.includes('github.io') ? 'https://experiment-around-events-christine.trycloudflare.com' : '';
 
 function getPortfolio() {
   const d = localStorage.getItem('joke_portfolio');
@@ -389,65 +390,45 @@ function savePriceCache() {
 async function fetchPrice(pos) {
   const cacheKey = pos.ticker + '_' + pos.assetClass;
   const cached = priceCache[cacheKey];
-  if (cached && Date.now() - cached.ts < 300000) return cached.price; // 5min cache
+  if (cached && Date.now() - cached.ts < 300000) return cached.price;
 
   try {
     let price = 0;
-    if (pos.assetClass === 'SET') {
-      // Yahoo Finance for Thai stocks: TICKER.BK
-      const resp = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(pos.ticker + '.BK') + '?range=1d&interval=1d');
-      const data = await resp.json();
-      const result = data.chart?.result?.[0];
-      if (result) {
-        const q = result.indicators?.quote?.[0];
-        const closes = q?.close || [];
-        price = closes[closes.length - 1] || result.meta?.chartPreviousClose || 0;
-      }
-    } else if (pos.assetClass === 'US') {
-      const resp = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(pos.ticker) + '?range=1d&interval=1d');
-      const data = await resp.json();
-      const result = data.chart?.result?.[0];
-      if (result) {
-        const q = result.indicators?.quote?.[0];
-        const closes = q?.close || [];
-        price = closes[closes.length - 1] || result.meta?.chartPreviousClose || 0;
-      }
-    } else if (pos.assetClass === 'CRYPTO') {
-      // CoinGecko
-      let id = '';
-      if (pos.ticker.toLowerCase().includes('btc')) id = 'bitcoin';
-      else if (pos.ticker.toLowerCase().includes('eth')) id = 'ethereum';
-      else id = pos.ticker.toLowerCase();
-      const resp = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + id + '&vs_currencies=usd');
-      const data = await resp.json();
-      price = data[id]?.usd || 0;
-    } else if (pos.assetClass === 'GOLD') {
-      const resp = await fetch('https://api.gold-api.com/price/XAU');
-      const data = await resp.json();
-      price = data.price || 0;
-    } else if (pos.assetClass === 'BOND') {
-      // Use bond ETF proxy: BND (US bonds) or Thai bond fund
-      const resp = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(pos.ticker || 'BND') + '?range=1d&interval=1d');
-      const data = await resp.json();
-      const result = data.chart?.result?.[0];
-      if (result) {
-        const q = result.indicators?.quote?.[0];
-        const closes = q?.close || [];
-        price = closes[closes.length - 1] || result.meta?.chartPreviousClose || 0;
-      } else {
-        price = pos.costPerUnit; // fallback to cost
-      }
+    
+    // Use the local API proxy for all price fetching (no CORS issues)
+    const resp = await fetch(API_BASE + '/api/quote?ticker=' + encodeURIComponent(pos.ticker) + '&class=' + pos.assetClass);
+    const data = await resp.json();
+    
+    if (data.ok && data.price > 0) {
+      price = data.price;
     } else {
-      // CASH or unknown
-      price = pos.costPerUnit;
+      // Fallback: try direct APIs for CORS-friendly services
+      console.warn('Proxy failed for', pos.ticker, data.error);
+      if (pos.assetClass === 'CRYPTO' || pos.assetClass === 'CRYPTO') {
+        try {
+          let id = pos.ticker.toLowerCase();
+          if (CRYPTO_ID_MAP[id]) id = CRYPTO_ID_MAP[id];
+          if (CRYPTO_ID_MAP[pos.ticker]) id = CRYPTO_ID_MAP[pos.ticker];
+          const r2 = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + id + '&vs_currencies=usd');
+          const d2 = await r2.json();
+          price = d2[id]?.usd || 0;
+        } catch {}
+      } else if (pos.assetClass === 'GOLD') {
+        try {
+          const r2 = await fetch('https://api.gold-api.com/price/XAU');
+          const d2 = await r2.json();
+          price = d2.price || 0;
+        } catch {}
+      }
     }
 
+    if (price <= 0) price = pos.costPerUnit; // fallback to cost
     priceCache[cacheKey] = { price, ts: Date.now() };
     savePriceCache();
     return price;
   } catch(e) {
-    console.warn('Price fetch failed for', pos.ticker, e);
-    return pos.costPerUnit; // fallback to cost
+    console.warn('Price fetch failed:', pos.ticker, e);
+    return pos.costPerUnit;
   }
 }
 
@@ -533,8 +514,13 @@ async function renderDashboard() {
   // Update time
   document.getElementById('timestamp').textContent = '🕐 Updated: ' + new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
 
-  // Charts
-  renderCharts(rows);
+  // Charts (wait for Chart.js if needed)
+  if (typeof Chart !== 'undefined') {
+    try { renderCharts(rows); } catch(e) { console.warn('Chart render error:', e); }
+  } else {
+    document.getElementById('timestamp').textContent += ' (Chart.js loading...)';
+    setTimeout(() => { try { renderCharts(rows); } catch(e) {} }, 1000);
+  }
 }
 
 function renderCharts(rows) {
