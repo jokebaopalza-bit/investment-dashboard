@@ -94,8 +94,22 @@
 
   /* ── Fibonacci Analysis ── */
   .fib-section { margin-bottom: 24px; }
+  .fib-tabs {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .fib-tab {
+    padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: 1px solid #30363d; background: #161b22; color: #8b949e;
+    transition: all 0.2s;
+  }
+  .fib-tab:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .fib-tab.active { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+  .fib-panel { display: none; }
+  .fib-panel.active { display: block; }
+
   .fib-grid {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    margin-bottom: 16px;
   }
   @media (max-width: 960px) { .fib-grid { grid-template-columns: 1fr; } }
   .fib-card {
@@ -134,7 +148,7 @@
   .fib-reco strong { color: #e6edf3; }
   .fib-range {
     display: flex; align-items: center; gap: 6px;
-    margin-top: 6px; font-size: 11px;
+    margin-top: 6px; margin-bottom: 10px; font-size: 11px;
   }
   .fib-range .bar {
     flex: 1; height: 6px; background: #1e3a5f; border-radius: 3px;
@@ -143,15 +157,59 @@
   .fib-range .bar .fill {
     height: 100%; border-radius: 3px; position: absolute;
   }
-  .fib-range .bar .dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    position: absolute; top: -2px; margin-left: -5px;
-    border: 2px solid #0d1117;
+  .fib-label { font-size: 9px; color: #8b949e; white-space: nowrap; }
+
+  /* ── Scenario Cards ── */
+  .scenario-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
   }
-  .fib-range .bar .dot.current { background: #58a6ff; }
-  .fib-range .bar .dot.buy { background: #22c55e; }
-  .fib-range .bar .dot.sell { background: #ef4444; }
-  .fib-label { font-size: 9px; color: #8b949e; }
+  @media (max-width: 960px) { .scenario-grid { grid-template-columns: 1fr; } }
+  .scenario-card {
+    background: #161b22; border: 1px solid #30363d; border-radius: 12px;
+    overflow: hidden;
+  }
+  .scenario-top {
+    padding: 10px 14px; border-bottom: 1px solid #30363d;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .scenario-title { font-size: 13px; font-weight: 600; }
+  .scenario-badge {
+    font-size: 10px; font-weight: 700; padding: 2px 8px;
+    border-radius: 12px; text-transform: uppercase;
+  }
+  .scenario-badge.bullish { background: #0a2a1a; color: #22c55e; }
+  .scenario-badge.bearish { background: #2a0a0a; color: #ef4444; }
+  .scenario-badge.neutral { background: #1a1a0a; color: #facc15; }
+  .scenario-body { padding: 10px 14px; }
+  .scenario-row {
+    display: flex; justify-content: space-between; padding: 5px 0;
+    font-size: 12px; border-bottom: 1px solid #0a0f1a;
+  }
+  .scenario-row:last-child { border-bottom: none; }
+  .scenario-row .lbl { color: #8b949e; }
+  .scenario-row .val { font-weight: 600; color: #e6edf3; }
+  .scenario-row .val.green { color: #22c55e; }
+  .scenario-row .val.red { color: #ef4444; }
+  .scenario-row .val.yellow { color: #facc15; }
+  .scenario-reco {
+    padding: 8px 14px;
+    font-size: 11px; line-height: 1.5; color: #c9d1d9;
+    border-top: 1px solid #30363d;
+  }
+  .scenario-action {
+    display: inline-block; font-weight: 700; padding: 2px 8px;
+    border-radius: 4px; font-size: 11px;
+  }
+  .scenario-action.buy { background: #0a2a1a; color: #22c55e; }
+  .scenario-action.sell { background: #2a0a0a; color: #ef4444; }
+  .scenario-action.wait { background: #1a1a0a; color: #facc15; }
+  .scenario-action.dca { background: #0a1a2a; color: #58a6ff; }
+  .scenario-rr {
+    display: inline-block; font-weight: 700; font-size: 13px;
+  }
+  .scenario-rr.good { color: #22c55e; }
+  .scenario-rr.ok { color: #facc15; }
+  .scenario-rr.poor { color: #ef4444; }
 
   /* ── Charts ── */
   .chart-grid {
@@ -195,20 +253,20 @@
   <!-- Header -->
   <header>
     <h1>📊 Investment Dashboard</h1>
-    <span class="last-updated">🕐 2026-09-06 03:28 UTC</span>
+    <span class="last-updated">🕐 2026-09-06 03:35 UTC</span>
   </header>
 
   <!-- Price Cards -->
   <div class="price-grid">
     <div class="price-card btc">
       <div class="price-label">Bitcoin <span style="color:#f7931a">BTC</span></div>
-      <div class="price-value">$79,925.00</div>
-      <div class="price-change up" style="color:#22c55e">▲ +0.42%</div>
+      <div class="price-value">$79,944.00</div>
+      <div class="price-change up" style="color:#22c55e">▲ +0.43%</div>
     </div>
     <div class="price-card eth">
       <div class="price-label">Ethereum <span style="color:#8ac53e">ETH</span></div>
-      <div class="price-value">$2,503.51</div>
-      <div class="price-change up" style="color:#22c55e">▲ +2.05%</div>
+      <div class="price-value">$2,503.37</div>
+      <div class="price-change up" style="color:#22c55e">▲ +1.98%</div>
     </div>
     <div class="price-card gold">
       <div class="price-label">Gold <span style="color:#ffd700">XAU</span></div>
@@ -221,7 +279,7 @@
   <div class="commentary-box">
     <div class="commentary-icon">💬</div>
     <div class="commentary-content">
-      <p id="commentary-text">Bitcoin holds near $80K in a tight consolidation range. ETH sees mild buying pressure around $2,500. Gold remains a macro safe haven above $4,400. Fibonacci golden pocket on BTC suggests accumulation near $72K support.</p>
+      <p id="commentary-text">BTC trading around $79.9K in a narrow range, awaiting catalyst for directional move. ETH holding above $2,500 with mild support. Gold remains elevated above $4,400 as geopolitical risks sustain safe-haven demand. Fibonacci shows neutral positioning - watch for GP breakout or support breakdown for next move.</p>
       <div class="commentary-meta">AI-generated market commentary</div>
     </div>
     <button class="refresh-btn" id="refreshBtn" onclick="refreshCommentary()" title="Refresh prices & commentary (free, client-side)">
@@ -232,25 +290,27 @@
 
   <!-- Fibonacci Analysis -->
   <div class="fib-section">
-    <h2 style="font-size:16px;font-weight:600;color:#c9d1d9;margin-bottom:14px">📐 Fibonacci Analysis</h2>
-    <div class="fib-grid">
+    <h2 style="font-size:16px;font-weight:600;color:#c9d1d9;margin-bottom:14px">📐 Fibonacci Analysis & Scenarios</h2>
+    <div class="fib-tabs">
+<div class="fib-tab active" onclick="switchFibTab('levels')" id="tab-levels">📊 Levels</div>
+<div class="fib-tab" onclick="switchFibTab('scenarios')" id="tab-scenarios">🔮 What If Scenarios</div>
+</div><div class="fib-panel active" id="fib-levels-panel"><div class="fib-grid">
 <div class="fib-card">
 <div class="fib-header">
 <span class="fib-header-name" style="color:#f7931a">₿ Bitcoin</span>
 <span class="fib-signal hold">HOLD</span>
 </div>
 <div class="fib-body">
-<div class="fib-range"><span class="fib-label">Support</span><div class="bar"><div class="fill" style="width:45%;background:linear-gradient(90deg,#22c55e,#facc15)"></div></div><span class="fib-label">Resistance</span></div>
-<div style="height:8px"></div>
-<div class="fib-level"><span class="lbl">0%</span><span class="val">$65,538.50</span></div>
-<div class="fib-level"><span class="lbl">23.6%</span><span class="val">$73,083.42</span></div>
-<div class="fib-level"><span class="lbl">38.2%</span><span class="val">$77,751.04</span></div>
-<div class="fib-level"><span class="lbl">50%</span><span class="val">$81,523.50</span></div>
-<div class="fib-level gp"><span class="lbl">61.8%</span><span class="val">$85,295.96</span></div>
-<div class="fib-level"><span class="lbl">78.6%</span><span class="val">$90,666.92</span></div>
-<div class="fib-level"><span class="lbl">100%</span><span class="val">$97,508.50</span></div>
+<div style="text-align:right;font-size:10px;color:#58a6ff;margin-bottom:4px">Current: $79,944 (45% into range)</div><div class="fib-range"><span class="fib-label">Support</span><div class="bar"><div class="fill" style="width:45%;background:linear-gradient(90deg,#22c55e,#facc15)"></div></div><span class="fib-label">Resistance</span></div>
+<div class="fib-level"><span class="lbl">0%</span><span class="val">$65,554</span></div>
+<div class="fib-level"><span class="lbl">23.6%</span><span class="val">$73,101</span></div>
+<div class="fib-level"><span class="lbl">38.2%</span><span class="val">$77,770</span></div>
+<div class="fib-level"><span class="lbl">50%</span><span class="val">$81,543</span></div>
+<div class="fib-level gp"><span class="lbl">61.8%</span><span class="val">$85,316</span></div>
+<div class="fib-level"><span class="lbl">78.6%</span><span class="val">$90,688</span></div>
+<div class="fib-level"><span class="lbl">100%</span><span class="val">$97,532</span></div>
 </div>
-<div class="fib-reco"><strong>BTC</strong> in neutral territory. Wait for a retracement toward the golden pocket (61.8%) before adding.</div>
+<div class="fib-reco"><strong>BTC</strong> in neutral zone. Wait for retrace to golden pocket (61.8%) before adding.</div>
 </div>
 
 <div class="fib-card">
@@ -259,17 +319,16 @@
 <span class="fib-signal hold">HOLD</span>
 </div>
 <div class="fib-body">
-<div class="fib-range"><span class="fib-label">Support</span><div class="bar"><div class="fill" style="width:45%;background:linear-gradient(90deg,#22c55e,#facc15)"></div></div><span class="fib-label">Resistance</span></div>
-<div style="height:8px"></div>
-<div class="fib-level"><span class="lbl">0%</span><span class="val">$2,052.88</span></div>
-<div class="fib-level"><span class="lbl">23.6%</span><span class="val">$2,289.21</span></div>
-<div class="fib-level"><span class="lbl">38.2%</span><span class="val">$2,435.41</span></div>
-<div class="fib-level"><span class="lbl">50%</span><span class="val">$2,553.58</span></div>
-<div class="fib-level gp"><span class="lbl">61.8%</span><span class="val">$2,671.75</span></div>
-<div class="fib-level"><span class="lbl">78.6%</span><span class="val">$2,839.98</span></div>
-<div class="fib-level"><span class="lbl">100%</span><span class="val">$3,054.28</span></div>
+<div style="text-align:right;font-size:10px;color:#58a6ff;margin-bottom:4px">Current: $2,503 (45% into range)</div><div class="fib-range"><span class="fib-label">Support</span><div class="bar"><div class="fill" style="width:45%;background:linear-gradient(90deg,#22c55e,#facc15)"></div></div><span class="fib-label">Resistance</span></div>
+<div class="fib-level"><span class="lbl">0%</span><span class="val">$2,053</span></div>
+<div class="fib-level"><span class="lbl">23.6%</span><span class="val">$2,289</span></div>
+<div class="fib-level"><span class="lbl">38.2%</span><span class="val">$2,435</span></div>
+<div class="fib-level"><span class="lbl">50%</span><span class="val">$2,553</span></div>
+<div class="fib-level gp"><span class="lbl">61.8%</span><span class="val">$2,672</span></div>
+<div class="fib-level"><span class="lbl">78.6%</span><span class="val">$2,840</span></div>
+<div class="fib-level"><span class="lbl">100%</span><span class="val">$3,054</span></div>
 </div>
-<div class="fib-reco"><strong>ETH</strong> in neutral territory. Wait for a retracement toward the golden pocket (61.8%) before adding.</div>
+<div class="fib-reco"><strong>ETH</strong> in neutral zone. Wait for retrace to golden pocket (61.8%) before adding.</div>
 </div>
 
 <div class="fib-card">
@@ -278,19 +337,159 @@
 <span class="fib-signal hold">HOLD</span>
 </div>
 <div class="fib-body">
-<div class="fib-range"><span class="fib-label">Support</span><div class="bar"><div class="fill" style="width:43%;background:linear-gradient(90deg,#22c55e,#facc15)"></div></div><span class="fib-label">Resistance</span></div>
-<div style="height:8px"></div>
-<div class="fib-level"><span class="lbl">0%</span><span class="val">$4,165.23</span></div>
-<div class="fib-level"><span class="lbl">23.6%</span><span class="val">$4,311.64</span></div>
-<div class="fib-level"><span class="lbl">38.2%</span><span class="val">$4,402.21</span></div>
-<div class="fib-level"><span class="lbl">50%</span><span class="val">$4,475.41</span></div>
-<div class="fib-level gp"><span class="lbl">61.8%</span><span class="val">$4,548.61</span></div>
-<div class="fib-level"><span class="lbl">78.6%</span><span class="val">$4,652.83</span></div>
-<div class="fib-level"><span class="lbl">100%</span><span class="val">$4,785.59</span></div>
+<div style="text-align:right;font-size:10px;color:#58a6ff;margin-bottom:4px">Current: $4,431 (43% into range)</div><div class="fib-range"><span class="fib-label">Support</span><div class="bar"><div class="fill" style="width:43%;background:linear-gradient(90deg,#22c55e,#facc15)"></div></div><span class="fib-label">Resistance</span></div>
+<div class="fib-level"><span class="lbl">0%</span><span class="val">$4,165</span></div>
+<div class="fib-level"><span class="lbl">23.6%</span><span class="val">$4,312</span></div>
+<div class="fib-level"><span class="lbl">38.2%</span><span class="val">$4,402</span></div>
+<div class="fib-level"><span class="lbl">50%</span><span class="val">$4,475</span></div>
+<div class="fib-level gp"><span class="lbl">61.8%</span><span class="val">$4,549</span></div>
+<div class="fib-level"><span class="lbl">78.6%</span><span class="val">$4,653</span></div>
+<div class="fib-level"><span class="lbl">100%</span><span class="val">$4,786</span></div>
 </div>
-<div class="fib-reco"><strong>XAU</strong> in neutral territory. Wait for a retracement toward the golden pocket (61.8%) before adding.</div>
+<div class="fib-reco"><strong>XAU</strong> in neutral zone. Wait for retrace to golden pocket (61.8%) before adding.</div>
 </div>
 
+</div></div><div class="fib-panel" id="fib-scenarios-panel"><div style="margin-bottom:20px">
+<h3 style="font-size:13px;font-weight:600;color:#f7931a;margin-bottom:10px">₿ Bitcoin — What If Analysis</h3>
+<div class="scenario-grid">
+<div class="scenario-card">
+<div class="scenario-top">
+<span class="scenario-title">🟢 What if price breaks above Golden Pocket?</span>
+<span class="scenario-badge bullish">BREAKOUT ZONE</span>
+</div>
+<div class="scenario-body">
+<div class="scenario-row"><span class="lbl">Breakout at</span><span class="val">$85,316</span></div>
+<div class="scenario-row"><span class="lbl">Stop Loss</span><span class="val">$81,543  (-4.4%)</span></div>
+<div class="scenario-row"><span class="lbl">Target 1 (78.6%)</span><span class="val">$90,688  (+6.3%)</span></div>
+<div class="scenario-row"><span class="lbl">Target 2 (100%)</span><span class="val">$97,532  (+14.3%)</span></div>
+<div class="scenario-row" style="margin-top:4px;border-top:1px solid #30363d;padding-top:6px"><span class="lbl">R:R</span><span class="scenario-rr ok">1:1.4 / 1:3.2</span></div>
+</div>
+<div class="scenario-reco"><span class="scenario-action buy">BUY ON BREAKOUT</span> If BTC breaks above the golden pocket ($85,316), it confirms bullish momentum. TP1 at 78.6% ($90,688), TP2 at 100% ($97,532). Flip GP to support.</div>
+</div>
+<div class="scenario-card">
+<div class="scenario-top">
+<span class="scenario-title">🟡 What if price stays in range?</span>
+<span class="scenario-badge neutral">HOLD</span>
+</div>
+<div class="scenario-body">
+<div class="scenario-row"><span class="lbl">Current Price</span><span class="val">$79,944</span></div>
+<div class="scenario-row"><span class="lbl">Range Low (38.2%)</span><span class="val">$77,770</span></div>
+<div class="scenario-row"><span class="lbl">Range High (61.8%)</span><span class="val">$85,316</span></div>
+<div class="scenario-row"><span class="lbl">Distance to support</span><span class="val">+6.7%</span></div>
+<div class="scenario-row" style="margin-top:4px;border-top:1px solid #30363d;padding-top:6px"><span class="lbl">R:R</span><span class="scenario-rr ok">—</span></div>
+</div>
+<div class="scenario-reco"><span class="scenario-action wait">HOLD / WAIT</span> BTC in mid-range. No clear edge yet. Wait for a move toward the golden pocket (buy) or 0% (sell).</div>
+</div>
+<div class="scenario-card">
+<div class="scenario-top">
+<span class="scenario-title">🔴 What if price breaks support?</span>
+<span class="scenario-badge bearish">RISK OFF</span>
+</div>
+<div class="scenario-body">
+<div class="scenario-row"><span class="lbl">Breakdown at</span><span class="val">$63,587  (-3% from 0%)</span></div>
+<div class="scenario-row"><span class="lbl">Stop Loss</span><span class="val">$73,101  (+15.0%)</span></div>
+<div class="scenario-row"><span class="lbl">Target 1</span><span class="val">$62,276  (-2.1%)</span></div>
+<div class="scenario-row"><span class="lbl">Target 2</span><span class="val">$58,999  (-7.2%)</span></div>
+<div class="scenario-row" style="margin-top:4px;border-top:1px solid #30363d;padding-top:6px"><span class="lbl">R:R</span><span class="scenario-rr poor">1:0.1</span></div>
+</div>
+<div class="scenario-reco"><span class="scenario-action sell">CUT LOSSES</span> If BTC breaks below support ($65,554), it signals weakness. Exit longs and wait for re-test. Short only if volume confirms breakdown.</div>
+</div>
+</div>
+</div>
+<div style="margin-bottom:20px">
+<h3 style="font-size:13px;font-weight:600;color:#8ac53e;margin-bottom:10px">Ξ Ethereum — What If Analysis</h3>
+<div class="scenario-grid">
+<div class="scenario-card">
+<div class="scenario-top">
+<span class="scenario-title">🟢 What if price breaks above Golden Pocket?</span>
+<span class="scenario-badge bullish">BREAKOUT ZONE</span>
+</div>
+<div class="scenario-body">
+<div class="scenario-row"><span class="lbl">Breakout at</span><span class="val">$2,672</span></div>
+<div class="scenario-row"><span class="lbl">Stop Loss</span><span class="val">$2,553  (-4.4%)</span></div>
+<div class="scenario-row"><span class="lbl">Target 1 (78.6%)</span><span class="val">$2,840  (+6.3%)</span></div>
+<div class="scenario-row"><span class="lbl">Target 2 (100%)</span><span class="val">$3,054  (+14.3%)</span></div>
+<div class="scenario-row" style="margin-top:4px;border-top:1px solid #30363d;padding-top:6px"><span class="lbl">R:R</span><span class="scenario-rr ok">1:1.4 / 1:3.2</span></div>
+</div>
+<div class="scenario-reco"><span class="scenario-action buy">BUY ON BREAKOUT</span> If ETH breaks above the golden pocket ($2,672), it confirms bullish momentum. TP1 at 78.6% ($2,840), TP2 at 100% ($3,054). Flip GP to support.</div>
+</div>
+<div class="scenario-card">
+<div class="scenario-top">
+<span class="scenario-title">🟡 What if price stays in range?</span>
+<span class="scenario-badge neutral">HOLD</span>
+</div>
+<div class="scenario-body">
+<div class="scenario-row"><span class="lbl">Current Price</span><span class="val">$2,503</span></div>
+<div class="scenario-row"><span class="lbl">Range Low (38.2%)</span><span class="val">$2,435</span></div>
+<div class="scenario-row"><span class="lbl">Range High (61.8%)</span><span class="val">$2,672</span></div>
+<div class="scenario-row"><span class="lbl">Distance to support</span><span class="val">+6.7%</span></div>
+<div class="scenario-row" style="margin-top:4px;border-top:1px solid #30363d;padding-top:6px"><span class="lbl">R:R</span><span class="scenario-rr ok">—</span></div>
+</div>
+<div class="scenario-reco"><span class="scenario-action wait">HOLD / WAIT</span> ETH in mid-range. No clear edge yet. Wait for a move toward the golden pocket (buy) or 0% (sell).</div>
+</div>
+<div class="scenario-card">
+<div class="scenario-top">
+<span class="scenario-title">🔴 What if price breaks support?</span>
+<span class="scenario-badge bearish">RISK OFF</span>
+</div>
+<div class="scenario-body">
+<div class="scenario-row"><span class="lbl">Breakdown at</span><span class="val">$1,991  (-3% from 0%)</span></div>
+<div class="scenario-row"><span class="lbl">Stop Loss</span><span class="val">$2,289  (+15.0%)</span></div>
+<div class="scenario-row"><span class="lbl">Target 1</span><span class="val">$1,950  (-2.1%)</span></div>
+<div class="scenario-row"><span class="lbl">Target 2</span><span class="val">$1,847  (-7.2%)</span></div>
+<div class="scenario-row" style="margin-top:4px;border-top:1px solid #30363d;padding-top:6px"><span class="lbl">R:R</span><span class="scenario-rr poor">1:0.1</span></div>
+</div>
+<div class="scenario-reco"><span class="scenario-action sell">CUT LOSSES</span> If ETH breaks below support ($2,053), it signals weakness. Exit longs and wait for re-test. Short only if volume confirms breakdown.</div>
+</div>
+</div>
+</div>
+<div style="margin-bottom:20px">
+<h3 style="font-size:13px;font-weight:600;color:#ffd700;margin-bottom:10px">🥇 Gold — What If Analysis</h3>
+<div class="scenario-grid">
+<div class="scenario-card">
+<div class="scenario-top">
+<span class="scenario-title">🟢 What if price breaks above Golden Pocket?</span>
+<span class="scenario-badge bullish">BREAKOUT ZONE</span>
+</div>
+<div class="scenario-body">
+<div class="scenario-row"><span class="lbl">Breakout at</span><span class="val">$4,549</span></div>
+<div class="scenario-row"><span class="lbl">Stop Loss</span><span class="val">$4,475  (-1.6%)</span></div>
+<div class="scenario-row"><span class="lbl">Target 1 (78.6%)</span><span class="val">$4,653  (+2.3%)</span></div>
+<div class="scenario-row"><span class="lbl">Target 2 (100%)</span><span class="val">$4,786  (+5.2%)</span></div>
+<div class="scenario-row" style="margin-top:4px;border-top:1px solid #30363d;padding-top:6px"><span class="lbl">R:R</span><span class="scenario-rr ok">1:1.4 / 1:3.2</span></div>
+</div>
+<div class="scenario-reco"><span class="scenario-action buy">BUY ON BREAKOUT</span> If XAU breaks above the golden pocket ($4,549), it confirms bullish momentum. TP1 at 78.6% ($4,653), TP2 at 100% ($4,786). Flip GP to support.</div>
+</div>
+<div class="scenario-card">
+<div class="scenario-top">
+<span class="scenario-title">🟡 What if price stays in range?</span>
+<span class="scenario-badge neutral">HOLD</span>
+</div>
+<div class="scenario-body">
+<div class="scenario-row"><span class="lbl">Current Price</span><span class="val">$4,431</span></div>
+<div class="scenario-row"><span class="lbl">Range Low (38.2%)</span><span class="val">$4,402</span></div>
+<div class="scenario-row"><span class="lbl">Range High (61.8%)</span><span class="val">$4,549</span></div>
+<div class="scenario-row"><span class="lbl">Distance to support</span><span class="val">+2.7%</span></div>
+<div class="scenario-row" style="margin-top:4px;border-top:1px solid #30363d;padding-top:6px"><span class="lbl">R:R</span><span class="scenario-rr ok">—</span></div>
+</div>
+<div class="scenario-reco"><span class="scenario-action wait">HOLD / WAIT</span> XAU in mid-range. No clear edge yet. Wait for a move toward the golden pocket (buy) or 0% (sell).</div>
+</div>
+<div class="scenario-card">
+<div class="scenario-top">
+<span class="scenario-title">🔴 What if price breaks support?</span>
+<span class="scenario-badge bearish">RISK OFF</span>
+</div>
+<div class="scenario-body">
+<div class="scenario-row"><span class="lbl">Breakdown at</span><span class="val">$4,040  (-3% from 0%)</span></div>
+<div class="scenario-row"><span class="lbl">Stop Loss</span><span class="val">$4,312  (+6.7%)</span></div>
+<div class="scenario-row"><span class="lbl">Target 1</span><span class="val">$3,957  (-2.1%)</span></div>
+<div class="scenario-row"><span class="lbl">Target 2</span><span class="val">$3,749  (-7.2%)</span></div>
+<div class="scenario-row" style="margin-top:4px;border-top:1px solid #30363d;padding-top:6px"><span class="lbl">R:R</span><span class="scenario-rr poor">1:0.3</span></div>
+</div>
+<div class="scenario-reco"><span class="scenario-action sell">CUT LOSSES</span> If XAU breaks below support ($4,165), it signals weakness. Exit longs and wait for re-test. Short only if volume confirms breakdown.</div>
+</div>
+</div>
+</div>
 </div>
   </div>
 
@@ -477,6 +676,14 @@ function showToast(msg) {
   el.textContent = msg;
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── Fibonacci Tab Switcher ──
+function switchFibTab(tab) {
+  document.querySelectorAll('.fib-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.fib-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('fib-' + tab + '-panel').classList.add('active');
 }
 </script>
 </body>
