@@ -151,6 +151,8 @@ footer a{color:#58a6ff;text-decoration:none}
         <select id="f_class">
           <option value="SET">🇹🇭 SET (หุ้นไทย)</option>
           <option value="US">🇺🇸 US Stocks</option>
+          <option value="MUTUAL">📦 Mutual Fund</option>
+          <option value="LTF">📜 LTF/RMF</option>
           <option value="CRYPTO">₿ Crypto</option>
           <option value="GOLD">🥇 Gold</option>
           <option value="BOND">📜 Bond</option>
@@ -316,12 +318,12 @@ footer a{color:#58a6ff;text-decoration:none}
 // ═══════════════════════════════════════════════════
 
 const CLASS_COLORS = {
-  SET: '#4ade80', US: '#58a6ff', CRYPTO: '#f7931a',
-  GOLD: '#ffd700', BOND: '#facc15', CASH: '#8b949e'
+  SET: '#4ade80', US: '#58a6ff', MUTUAL: '#a855f7', LTF: '#f97316',
+  CRYPTO: '#f7931a', GOLD: '#ffd700', BOND: '#facc15', CASH: '#8b949e'
 };
 const CLASS_NAMES = {
-  SET: '🇹🇭 SET', US: '🇺🇸 US Stocks', CRYPTO: '₿ Crypto',
-  GOLD: '🥇 Gold', BOND: '📜 Bond', CASH: '💵 Cash'
+  SET: '🇹🇭 SET', US: '🇺🇸 US Stocks', MUTUAL: '📦 Mutual Fund', LTF: '📜 LTF/RMF',
+  CRYPTO: '₿ Crypto', GOLD: '🥇 Gold', BOND: '📜 Bond', CASH: '💵 Cash'
 };
 const SOURCE_ICONS = {
   KKP: '🏦', DIME: '🥇', SAXO: '📈', KRUNGSRI: '🏦',
@@ -330,7 +332,7 @@ const SOURCE_ICONS = {
 
 let portfolio = [];
 let plan = { target: 0, contrib: 0, years: 10 };
-let targets = { SET: 20, US: 20, CRYPTO: 10, GOLD: 10, BOND: 30, CASH: 10 };
+let targets = { SET: 15, US: 15, MUTUAL: 10, LTF: 10, CRYPTO: 10, GOLD: 10, BOND: 20, CASH: 10 };
 let fxRate = 35;
 let editingId = null;
 let priceCache = {};
@@ -385,6 +387,11 @@ async function fetchPrice(pos) {
   const cacheKey = pos.ticker + '_' + pos.assetClass;
   const cached = priceCache[cacheKey];
   if (cached && Date.now() - cached.ts < 300000) return cached.price;
+
+  // Mutual Fund & LTF/RMF — no real-time price, use cost
+  if (pos.assetClass === 'MUTUAL' || pos.assetClass === 'LTF') {
+    return pos.costPerUnit;
+  }
 
   try {
     let price = 0;
