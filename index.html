@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Investment Dashboard — BTC · ETH · Gold</title>
-<meta name="description" content="Live BTC, ETH, Gold prices with AI commentary and interactive TradingView charts.">
+<meta name="description" content="Live BTC, ETH, Gold prices with AI commentary, Fibonacci analysis, and interactive TradingView charts.">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -69,16 +69,10 @@
     display: flex; gap: 16px; align-items: flex-start;
   }
   @media (max-width: 600px) { .commentary-box { flex-direction: column; } }
-  .commentary-icon {
-    font-size: 24px; flex-shrink: 0; margin-top: 2px;
-  }
+  .commentary-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
   .commentary-content { flex: 1; }
-  .commentary-content p {
-    font-size: 15px; line-height: 1.6; color: #c9d1d9;
-  }
-  .commentary-meta {
-    font-size: 12px; color: #8b949e; margin-top: 8px;
-  }
+  .commentary-content p { font-size: 15px; line-height: 1.6; color: #c9d1d9; }
+  .commentary-meta { font-size: 12px; color: #8b949e; margin-top: 8px; }
   .refresh-btn {
     flex-shrink: 0; background: #21262d; border: 1px solid #30363d;
     color: #e6edf3; padding: 8px 20px; border-radius: 8px;
@@ -97,6 +91,67 @@
   .refresh-btn.loading .spinner { display: inline-block; }
   .refresh-btn.loading .btn-text { display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Fibonacci Analysis ── */
+  .fib-section { margin-bottom: 24px; }
+  .fib-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  @media (max-width: 960px) { .fib-grid { grid-template-columns: 1fr; } }
+  .fib-card {
+    background: #161b22; border: 1px solid #30363d; border-radius: 12px;
+    overflow: hidden;
+  }
+  .fib-header {
+    padding: 12px 16px; border-bottom: 1px solid #30363d;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .fib-header-name { font-size: 14px; font-weight: 600; }
+  .fib-signal {
+    font-size: 11px; font-weight: 700; padding: 3px 10px;
+    border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .fib-signal.buy { background: #0a2a1a; color: #22c55e; }
+  .fib-signal.sell { background: #2a0a0a; color: #ef4444; }
+  .fib-signal.hold { background: #1a1a0a; color: #facc15; }
+  .fib-body { padding: 12px 16px; }
+  .fib-level {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 5px 8px; margin-bottom: 3px; border-radius: 6px;
+    font-size: 12px; background: #0a0f1a;
+  }
+  .fib-level .lbl { color: #8b949e; }
+  .fib-level .val { font-weight: 600; color: #e6edf3; }
+  .fib-level.active {
+    background: #1a2a1a; border: 1px solid #22c55e;
+  }
+  .fib-level.active .val { color: #22c55e; }
+  .fib-level.gp { border-left: 3px solid #22c55e; }
+  .fib-reco {
+    padding: 10px 16px; border-top: 1px solid #30363d;
+    font-size: 12px; color: #c9d1d9; line-height: 1.5;
+  }
+  .fib-reco strong { color: #e6edf3; }
+  .fib-range {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 6px; font-size: 11px;
+  }
+  .fib-range .bar {
+    flex: 1; height: 6px; background: #1e3a5f; border-radius: 3px;
+    position: relative; overflow: visible;
+  }
+  .fib-range .bar .fill {
+    height: 100%; border-radius: 3px; position: absolute;
+  }
+  .fib-range .bar .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    position: absolute; top: -2px; margin-left: -5px;
+    border: 2px solid #0d1117;
+  }
+  .fib-range .bar .dot.current { background: #58a6ff; }
+  .fib-range .bar .dot.buy { background: #22c55e; }
+  .fib-range .bar .dot.sell { background: #ef4444; }
+  .fib-label { font-size: 9px; color: #8b949e; }
 
   /* ── Charts ── */
   .chart-grid {
@@ -140,20 +195,20 @@
   <!-- Header -->
   <header>
     <h1>📊 Investment Dashboard</h1>
-    <span class="last-updated">🕐 2026-09-06 03:13 UTC</span>
+    <span class="last-updated">🕐 2026-09-06 03:28 UTC</span>
   </header>
 
   <!-- Price Cards -->
   <div class="price-grid">
     <div class="price-card btc">
       <div class="price-label">Bitcoin <span style="color:#f7931a">BTC</span></div>
-      <div class="price-value">$79,914.00</div>
-      <div class="price-change up" style="color:#22c55e">▲ +0.46%</div>
+      <div class="price-value">$79,925.00</div>
+      <div class="price-change up" style="color:#22c55e">▲ +0.42%</div>
     </div>
     <div class="price-card eth">
       <div class="price-label">Ethereum <span style="color:#8ac53e">ETH</span></div>
-      <div class="price-value">$2,503.19</div>
-      <div class="price-change up" style="color:#22c55e">▲ +2.07%</div>
+      <div class="price-value">$2,503.51</div>
+      <div class="price-change up" style="color:#22c55e">▲ +2.05%</div>
     </div>
     <div class="price-card gold">
       <div class="price-label">Gold <span style="color:#ffd700">XAU</span></div>
@@ -166,13 +221,77 @@
   <div class="commentary-box">
     <div class="commentary-icon">💬</div>
     <div class="commentary-content">
-      <p id="commentary-text">BTC holds near $80K — sub-$80K consolidation suggests a pivotal zone between bull support and short-term liquidation pressure. ETH at $2,503 struggles to reclaim momentum relative to BTC, widening the ETH/BTC ratio gap. Gold at $4,431 reaffirms its safe-haven bid amid macro uncertainty, outpacing crypto returns this cycle.</p>
+      <p id="commentary-text">Bitcoin holds near $80K in a tight consolidation range. ETH sees mild buying pressure around $2,500. Gold remains a macro safe haven above $4,400. Fibonacci golden pocket on BTC suggests accumulation near $72K support.</p>
       <div class="commentary-meta">AI-generated market commentary</div>
     </div>
     <button class="refresh-btn" id="refreshBtn" onclick="refreshCommentary()" title="Refresh prices & commentary (free, client-side)">
       <span class="spinner"></span>
       <span class="btn-text">🔄 Refresh</span>
     </button>
+  </div>
+
+  <!-- Fibonacci Analysis -->
+  <div class="fib-section">
+    <h2 style="font-size:16px;font-weight:600;color:#c9d1d9;margin-bottom:14px">📐 Fibonacci Analysis</h2>
+    <div class="fib-grid">
+<div class="fib-card">
+<div class="fib-header">
+<span class="fib-header-name" style="color:#f7931a">₿ Bitcoin</span>
+<span class="fib-signal hold">HOLD</span>
+</div>
+<div class="fib-body">
+<div class="fib-range"><span class="fib-label">Support</span><div class="bar"><div class="fill" style="width:45%;background:linear-gradient(90deg,#22c55e,#facc15)"></div></div><span class="fib-label">Resistance</span></div>
+<div style="height:8px"></div>
+<div class="fib-level"><span class="lbl">0%</span><span class="val">$65,538.50</span></div>
+<div class="fib-level"><span class="lbl">23.6%</span><span class="val">$73,083.42</span></div>
+<div class="fib-level"><span class="lbl">38.2%</span><span class="val">$77,751.04</span></div>
+<div class="fib-level"><span class="lbl">50%</span><span class="val">$81,523.50</span></div>
+<div class="fib-level gp"><span class="lbl">61.8%</span><span class="val">$85,295.96</span></div>
+<div class="fib-level"><span class="lbl">78.6%</span><span class="val">$90,666.92</span></div>
+<div class="fib-level"><span class="lbl">100%</span><span class="val">$97,508.50</span></div>
+</div>
+<div class="fib-reco"><strong>BTC</strong> in neutral territory. Wait for a retracement toward the golden pocket (61.8%) before adding.</div>
+</div>
+
+<div class="fib-card">
+<div class="fib-header">
+<span class="fib-header-name" style="color:#8ac53e">Ξ Ethereum</span>
+<span class="fib-signal hold">HOLD</span>
+</div>
+<div class="fib-body">
+<div class="fib-range"><span class="fib-label">Support</span><div class="bar"><div class="fill" style="width:45%;background:linear-gradient(90deg,#22c55e,#facc15)"></div></div><span class="fib-label">Resistance</span></div>
+<div style="height:8px"></div>
+<div class="fib-level"><span class="lbl">0%</span><span class="val">$2,052.88</span></div>
+<div class="fib-level"><span class="lbl">23.6%</span><span class="val">$2,289.21</span></div>
+<div class="fib-level"><span class="lbl">38.2%</span><span class="val">$2,435.41</span></div>
+<div class="fib-level"><span class="lbl">50%</span><span class="val">$2,553.58</span></div>
+<div class="fib-level gp"><span class="lbl">61.8%</span><span class="val">$2,671.75</span></div>
+<div class="fib-level"><span class="lbl">78.6%</span><span class="val">$2,839.98</span></div>
+<div class="fib-level"><span class="lbl">100%</span><span class="val">$3,054.28</span></div>
+</div>
+<div class="fib-reco"><strong>ETH</strong> in neutral territory. Wait for a retracement toward the golden pocket (61.8%) before adding.</div>
+</div>
+
+<div class="fib-card">
+<div class="fib-header">
+<span class="fib-header-name" style="color:#ffd700">🥇 Gold</span>
+<span class="fib-signal hold">HOLD</span>
+</div>
+<div class="fib-body">
+<div class="fib-range"><span class="fib-label">Support</span><div class="bar"><div class="fill" style="width:43%;background:linear-gradient(90deg,#22c55e,#facc15)"></div></div><span class="fib-label">Resistance</span></div>
+<div style="height:8px"></div>
+<div class="fib-level"><span class="lbl">0%</span><span class="val">$4,165.23</span></div>
+<div class="fib-level"><span class="lbl">23.6%</span><span class="val">$4,311.64</span></div>
+<div class="fib-level"><span class="lbl">38.2%</span><span class="val">$4,402.21</span></div>
+<div class="fib-level"><span class="lbl">50%</span><span class="val">$4,475.41</span></div>
+<div class="fib-level gp"><span class="lbl">61.8%</span><span class="val">$4,548.61</span></div>
+<div class="fib-level"><span class="lbl">78.6%</span><span class="val">$4,652.83</span></div>
+<div class="fib-level"><span class="lbl">100%</span><span class="val">$4,785.59</span></div>
+</div>
+<div class="fib-reco"><strong>XAU</strong> in neutral territory. Wait for a retracement toward the golden pocket (61.8%) before adding.</div>
+</div>
+
+</div>
   </div>
 
   <!-- TradingView Charts -->
@@ -192,7 +311,7 @@
   </div>
 
   <footer>
-    Data: CoinGecko · Yahoo Finance · TradingView &nbsp;·&nbsp; Made by <a href="https://t.me/your_bot" target="_blank">โซโล</a>
+    Data: CoinGecko · Gold API · TradingView &nbsp;·&nbsp; Fibonacci: Dynamic retracement
   </footer>
 </div>
 
@@ -291,7 +410,6 @@ async function refreshCommentary() {
   btn.disabled = true;
 
   try {
-    // Fetch fresh prices from CoinGecko + Gold API
     const [cgResp, goldResp] = await Promise.all([
       fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true'),
       fetch('https://api.gold-api.com/price/XAU'),
@@ -308,11 +426,6 @@ async function refreshCommentary() {
     updatePriceCard('btc', btc.usd, btc.usd_24h_change);
     updatePriceCard('eth', eth.usd, eth.usd_24h_change);
     updatePriceCard('gold', goldPrice, 0);
-
-    // Generate data-driven commentary
-    const btcDir = btc.usd_24h_change >= 0 ? 'up' : 'down';
-    const ethDir = eth.usd_24h_change >= 0 ? 'up' : 'down';
-    const goldDir = goldPrice >= 0 ? 'up' : 'down';
 
     const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
     const commentary =
