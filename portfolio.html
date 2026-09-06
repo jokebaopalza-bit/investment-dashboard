@@ -388,8 +388,17 @@ async function fetchPrice(pos) {
   const cached = priceCache[cacheKey];
   if (cached && Date.now() - cached.ts < 300000) return cached.price;
 
-  // Mutual Fund & LTF/RMF — no real-time price, use cost
+  // Mutual Fund & LTF/RMF — try NAV lookup via API
   if (pos.assetClass === 'MUTUAL' || pos.assetClass === 'LTF') {
+    try {
+      const resp = await fetch(API_BASE + '/api/quote?ticker=' + encodeURIComponent(pos.ticker) + '&class=' + pos.assetClass);
+      const data = await resp.json();
+      if (data.ok && data.price > 0) {
+        priceCache[cacheKey] = { price: data.price, ts: Date.now() };
+        savePriceCache();
+        return data.price;
+      }
+    } catch(e) {}
     return pos.costPerUnit;
   }
 
