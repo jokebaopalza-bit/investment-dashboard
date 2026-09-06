@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Tracker — Joke's Portfolio</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'SF Pro','Segoe UI',Roboto,sans-serif;background:#0d1117;color:#e6edf3;padding:24px;min-height:100vh}
+.container{max-width:1280px;margin:0 auto}
+
+/* Nav */
+.nav{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.nav-btn{flex:1;padding:10px 16px;text-align:center;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid #30363d;background:#161b22;color:#8b949e;min-width:100px;transition:all .2s}
+.nav-btn:hover{border-color:#58a6ff;color:#c9d1d9}
+.nav-btn.active{background:#1f3a5f;border-color:#58a6ff;color:#58a6ff}
+.page{display:none}
+.page.active{display:block}
+
+h1{font-size:22px;font-weight:600;margin-bottom:4px}
+h1 span.gradient{background:linear-gradient(135deg,#f7931a,#8ac53e,#58a6ff,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sub{font-size:13px;color:#8b949e;margin-bottom:20px}
+
+/* Summary Cards */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:720px){.summary-grid{grid-template-columns:repeat(2,1fr)}}
+.summary-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px;text-align:center}
+.summary-card .val{font-size:22px;font-weight:700}
+.summary-card .val.green{color:#22c55e}
+.summary-card .val.red{color:#ef4444}
+.summary-card .lbl{font-size:11px;color:#8b949e;margin-top:4px}
+
+/* Portfolio Table */
+.table-wrap{background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden;margin-bottom:20px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#1a2332;color:#8b949e;font-weight:600;padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #30363d}
+td{padding:10px 12px;border-bottom:1px solid #21262d;color:#c9d1d9}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#1a2332}
+.green{color:#22c55e}
+.red{color:#ef4444}
+.yellow{color:#facc15}
+.blue{color:#58a6ff}
+.right{text-align:right}
+.edit-btn{font-size:11px;padding:2px 8px;border-radius:4px;cursor:pointer;border:1px solid #30363d;background:#21262d;color:#8b949e;transition:all .2s}
+.edit-btn:hover{border-color:#58a6ff;color:#58a6ff}
+.del-btn{color:#ef4444;cursor:pointer;font-size:14px;opacity:.5;transition:opacity .2s}
+.del-btn:hover{opacity:1}
+
+/* Form */
+.form-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px;margin-bottom:20px}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:12px}
+.form-group label{display:block;font-size:11px;color:#8b949e;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select{width:100%;padding:8px 10px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;font-size:13px}
+.form-group input:focus,.form-group select:focus{border-color:#58a6ff;outline:none}
+.form-group select option{background:#0d1117;color:#e6edf3}
+.btn{padding:8px 20px;border-radius:6px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.8}
+.btn-primary{background:#58a6ff;color:#fff}
+.btn-success{background:#22c55e;color:#fff}
+.btn-danger{background:#ef4444;color:#fff}
+.btn-outline{background:transparent;border:1px solid #30363d;color:#8b949e}
+.btn-outline:hover{background:#21262d}
+.empty-msg{text-align:center;padding:40px;color:#8b949e;font-size:14px}
+.empty-msg .big{font-size:40px;margin-bottom:10px}
+
+/* Allocation Chart */
+.chart-section{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+@media(max-width:720px){.chart-section{grid-template-columns:1fr}}
+.chart-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px}
+.chart-card h3{font-size:13px;color:#8b949e;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px}
+.chart-canvas-wrap{position:relative;width:100%;max-width:300px;margin:0 auto}
+
+/* Plan Section */
+.plan-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px;margin-bottom:16px}
+.plan-progress{margin:12px 0}
+.plan-bar{height:12px;background:#1e3a5f;border-radius:6px;overflow:hidden;position:relative}
+.plan-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#22c55e,#58a6ff);transition:width .5s ease}
+.plan-labels{display:flex;justify-content:space-between;font-size:11px;color:#8b949e;margin-top:4px}
+.target-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:600px){.target-grid{grid-template-columns:1fr 1fr}}
+.target-item{background:#0d1117;border-radius:8px;padding:10px;text-align:center}
+.target-item .lbl{font-size:11px;color:#8b949e}
+.target-item .cur{font-size:15px;font-weight:600;margin:2px 0}
+.target-item .tgt{font-size:11px;color:#8b949e}
+.target-item .tgt span{color:#58a6ff}
+.target-item .diff{font-size:10px;margin-top:2px}
+
+/* Reco Cards */
+.reco-card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px;margin-bottom:12px;border-left:4px solid}
+.reco-card.buy{border-left-color:#22c55e}
+.reco-card.sell{border-left-color:#ef4444}
+.reco-card.hold{border-left-color:#facc15}
+.reco-card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.reco-card .action{font-size:13px;font-weight:700;text-transform:uppercase}
+.reco-card .detail{font-size:12px;color:#c9d1d9;line-height:1.5}
+
+/* Footer */
+footer{text-align:center;margin-top:24px;padding:16px;font-size:12px;color:#484f58}
+footer a{color:#58a6ff;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1><span class="gradient">💰 Joke's Portfolio Tracker</span></h1>
+<div class="sub" id="timestamp">—</div>
+
+<div class="nav">
+  <div class="nav-btn active" data-page="dashboard">📊 Dashboard</div>
+  <div class="nav-btn" data-page="positions">📝 Positions</div>
+  <div class="nav-btn" data-page="plan">🎯 Plan</div>
+  <div class="nav-btn" data-page="rebalance">💡 Rebalance</div>
+  <div class="nav-btn" data-page="settings">⚙ Settings</div>
+</div>
+
+<!-- ==================== PAGE: DASHBOARD ==================== -->
+<div class="page active" id="page-dashboard">
+  <div class="summary-grid" id="summaryCards"></div>
+  
+  <div class="chart-section">
+    <div class="chart-card">
+      <h3>Allocation by Asset Class</h3>
+      <div class="chart-canvas-wrap"><canvas id="allocChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Allocation by Asset</h3>
+      <div class="chart-canvas-wrap"><canvas id="assetChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="table-wrap" id="perfTableWrap">
+    <table id="perfTable">
+      <thead>
+        <tr><th>Asset</th><th>Type</th><th class="right">Qty</th><th class="right">Cost</th><th class="right">Current</th><th class="right">Value</th><th class="right">P&amp;L</th><th class="right">%</th><th class="right">Alloc %</th></tr>
+      </thead>
+      <tbody id="perfBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== PAGE: POSITIONS ==================== -->
+<div class="page" id="page-positions">
+  <div class="form-card" id="posForm">
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:12px" id="formTitle">➕ Add Position</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Asset Class</label>
+        <select id="f_class">
+          <option value="SET">🇹🇭 SET (หุ้นไทย)</option>
+          <option value="US">🇺🇸 US Stocks</option>
+          <option value="CRYPTO">₿ Crypto</option>
+          <option value="GOLD">🥇 Gold</option>
+          <option value="BOND">📜 Bond</option>
+          <option value="CASH">💵 Cash/FD</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Ticker / Symbol</label>
+        <input type="text" id="f_ticker" placeholder="e.g. ADVANC, AAPL, BTC-USD">
+      </div>
+      <div class="form-group">
+        <label>Name (optional)</label>
+        <input type="text" id="f_name" placeholder="e.g. Advanced Info">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Quantity</label>
+        <input type="number" id="f_qty" step="any" placeholder="100">
+      </div>
+      <div class="form-group">
+        <label>Cost per Unit</label>
+        <input type="number" id="f_cost" step="any" placeholder="200.00">
+      </div>
+      <div class="form-group">
+        <label>Currency</label>
+        <select id="f_curr">
+          <option value="THB">THB</option>
+          <option value="USD">USD</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date Acquired</label>
+        <input type="date" id="f_date">
+      </div>
+      <div class="form-group">
+        <label>Notes (optional)</label>
+        <input type="text" id="f_notes" placeholder="Dividend stock, etc.">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-success" onclick="savePosition()">✅ Save Position</button>
+      <button class="btn btn-outline" onclick="cancelEdit()">Cancel</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Asset</th><th>Ticker</th><th>Class</th><th class="right">Qty</th><th class="right">Cost/Unit</th><th class="right">Total Cost</th><th>Currency</th><th></th></tr>
+      </thead>
+      <tbody id="posBody"></tbody>
+    </table>
+  </div>
+  <div style="text-align:center;margin-top:12px">
+    <button class="btn btn-outline" onclick="loadDemoData()">📥 Load Demo Data</button>
+    <button class="btn btn-danger" onclick="clearAll()" style="margin-left:8px">🗑 Clear All</button>
+  </div>
+</div>
+
+<!-- ==================== PAGE: PLAN ==================== -->
+<div class="page" id="page-plan">
+  <div class="plan-card">
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:8px">🎯 Retirement Goal</h3>
+    <div class="form-row" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="form-group">
+        <label>Target Amount (THB)</label>
+        <input type="number" id="plan_target" step="any" placeholder="e.g. 50000000">
+      </div>
+      <div class="form-group">
+        <label>Monthly Contribution (THB)</label>
+        <input type="number" id="plan_contrib" step="any" placeholder="e.g. 30000">
+      </div>
+      <div class="form-group">
+        <label>Years Until Retirement</label>
+        <input type="number" id="plan_years" placeholder="e.g. 10">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="savePlan()">💾 Save Plan</button>
+  </div>
+
+  <div class="plan-card">
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">🎯 Target vs Current</h3>
+    <div class="plan-progress">
+      <div class="plan-bar">
+        <div class="plan-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="plan-labels">
+        <span id="progressLabel">0% of goal</span>
+        <span id="progressRemain">Remaining: —</span>
+      </div>
+    </div>
+    <div class="summary-grid" style="margin-top:12px">
+      <div class="summary-card"><div class="val" id="plan_total">฿0</div><div class="lbl">Current Portfolio</div></div>
+      <div class="summary-card"><div class="val" id="plan_target_display">฿0</div><div class="lbl">Retirement Goal</div></div>
+      <div class="summary-card"><div class="val" id="plan_gap">฿0</div><div class="lbl">Gap to Goal</div></div>
+      <div class="summary-card"><div class="val" id="plan_projected">฿0</div><div class="lbl">Projected (with contributions)</div></div>
+    </div>
+  </div>
+
+  <div class="plan-card">
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">📊 Target Allocation</h3>
+    <div class="target-grid" id="targetGrid"></div>
+    <p style="font-size:11px;color:#484f58;margin-top:10px;text-align:center">💡 Edit target % in Settings tab</p>
+  </div>
+</div>
+
+<!-- ==================== PAGE: REBALANCE ==================== -->
+<div class="page" id="page-rebalance">
+  <div class="summary-grid" id="recoSummary"></div>
+  <div id="recoList"></div>
+</div>
+
+<!-- ==================== PAGE: SETTINGS ==================== -->
+<div class="page" id="page-settings">
+  <div class="form-card">
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">🎯 Target Allocation %</h3>
+    <p style="font-size:12px;color:#8b949e;margin-bottom:12px">Set your ideal portfolio allocation by asset class:</p>
+    <div class="form-row" id="targetInputs"></div>
+    <button class="btn btn-primary" onclick="saveTargets()">💾 Save Targets</button>
+  </div>
+  <div class="form-card">
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">THB/USD Exchange Rate</h3>
+    <div class="form-row" style="grid-template-columns:1fr">
+      <div class="form-group">
+        <label>1 USD = ? THB</label>
+        <input type="number" id="fx_rate" step="0.01" placeholder="35.00">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveFx()">💾 Save</button>
+    <p style="font-size:11px;color:#484f58;margin-top:8px">Auto-updates from API on refresh. Manual override if needed.</p>
+  </div>
+  <div class="form-card">
+    <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">📋 Export / Import</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline" onclick="exportCSV()">📥 Export CSV</button>
+      <button class="btn btn-outline" onclick="importCSV()">📤 Import CSV</button>
+    </div>
+    <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="handleImport(event)">
+  </div>
+</div>
+
+<footer>Made with ❤️ by โซโล · Data stays in your browser (localStorage)</footer>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  DATA MODEL
+// ═══════════════════════════════════════════════════
+
+const CLASS_COLORS = {
+  SET: '#4ade80', US: '#58a6ff', CRYPTO: '#f7931a',
+  GOLD: '#ffd700', BOND: '#facc15', CASH: '#8b949e'
+};
+const CLASS_NAMES = {
+  SET: '🇹🇭 SET', US: '🇺🇸 US Stocks', CRYPTO: '₿ Crypto',
+  GOLD: '🥇 Gold', BOND: '📜 Bond', CASH: '💵 Cash'
+};
+
+let portfolio = [];
+let plan = { target: 0, contrib: 0, years: 10 };
+let targets = { SET: 20, US: 20, CRYPTO: 10, GOLD: 10, BOND: 30, CASH: 10 };
+let fxRate = 35;
+let editingId = null;
+let priceCache = {};
+
+function getPortfolio() {
+  const d = localStorage.getItem('joke_portfolio');
+  if (d) { portfolio = JSON.parse(d); }
+  return portfolio;
+}
+function savePortfolio() {
+  localStorage.setItem('joke_portfolio', JSON.stringify(portfolio));
+}
+function getPlan() {
+  const d = localStorage.getItem('joke_plan');
+  if (d) { plan = JSON.parse(d); }
+  return plan;
+}
+function savePlanData() {
+  localStorage.setItem('joke_plan', JSON.stringify(plan));
+}
+function getTargets() {
+  const d = localStorage.getItem('joke_targets');
+  if (d) { targets = JSON.parse(d); }
+  return targets;
+}
+function saveTargetData() {
+  localStorage.setItem('joke_targets', JSON.stringify(targets));
+}
+function getFx() {
+  const d = localStorage.getItem('joke_fx');
+  if (d) { fxRate = parseFloat(d); }
+  return fxRate;
+}
+function saveFxData() {
+  localStorage.setItem('joke_fx', String(fxRate));
+}
+function getPriceCache() {
+  const d = localStorage.getItem('joke_prices');
+  if (d) { priceCache = JSON.parse(d); }
+  return priceCache;
+}
+function savePriceCache() {
+  localStorage.setItem('joke_prices', JSON.stringify(priceCache));
+}
+
+// ═══════════════════════════════════════════════════
+//  PRICE FETCHING
+// ═══════════════════════════════════════════════════
+
+async function fetchPrice(pos) {
+  const cacheKey = pos.ticker + '_' + pos.assetClass;
+  const cached = priceCache[cacheKey];
+  if (cached && Date.now() - cached.ts < 300000) return cached.price; // 5min cache
+
+  try {
+    let price = 0;
+    if (pos.assetClass === 'SET') {
+      // Yahoo Finance for Thai stocks: TICKER.BK
+      const resp = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(pos.ticker + '.BK') + '?range=1d&interval=1d');
+      const data = await resp.json();
+      const result = data.chart?.result?.[0];
+      if (result) {
+        const q = result.indicators?.quote?.[0];
+        const closes = q?.close || [];
+        price = closes[closes.length - 1] || result.meta?.chartPreviousClose || 0;
+      }
+    } else if (pos.assetClass === 'US') {
+      const resp = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(pos.ticker) + '?range=1d&interval=1d');
+      const data = await resp.json();
+      const result = data.chart?.result?.[0];
+      if (result) {
+        const q = result.indicators?.quote?.[0];
+        const closes = q?.close || [];
+        price = closes[closes.length - 1] || result.meta?.chartPreviousClose || 0;
+      }
+    } else if (pos.assetClass === 'CRYPTO') {
+      // CoinGecko
+      let id = '';
+      if (pos.ticker.toLowerCase().includes('btc')) id = 'bitcoin';
+      else if (pos.ticker.toLowerCase().includes('eth')) id = 'ethereum';
+      else id = pos.ticker.toLowerCase();
+      const resp = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + id + '&vs_currencies=usd');
+      const data = await resp.json();
+      price = data[id]?.usd || 0;
+    } else if (pos.assetClass === 'GOLD') {
+      const resp = await fetch('https://api.gold-api.com/price/XAU');
+      const data = await resp.json();
+      price = data.price || 0;
+    } else if (pos.assetClass === 'BOND') {
+      // Use bond ETF proxy: BND (US bonds) or Thai bond fund
+      const resp = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(pos.ticker || 'BND') + '?range=1d&interval=1d');
+      const data = await resp.json();
+      const result = data.chart?.result?.[0];
+      if (result) {
+        const q = result.indicators?.quote?.[0];
+        const closes = q?.close || [];
+        price = closes[closes.length - 1] || result.meta?.chartPreviousClose || 0;
+      } else {
+        price = pos.costPerUnit; // fallback to cost
+      }
+    } else {
+      // CASH or unknown
+      price = pos.costPerUnit;
+    }
+
+    priceCache[cacheKey] = { price, ts: Date.now() };
+    savePriceCache();
+    return price;
+  } catch(e) {
+    console.warn('Price fetch failed for', pos.ticker, e);
+    return pos.costPerUnit; // fallback to cost
+  }
+}
+
+async function refreshAllPrices() {
+  const prices = {};
+  for (const p of portfolio) {
+    prices[p.id] = await fetchPrice(p);
+  }
+  return prices;
+}
+
+// ═══════════════════════════════════════════════════
+//  DASHBOARD RENDER
+// ═══════════════════════════════════════════════════
+
+async function renderDashboard() {
+  portfolio = getPortfolio();
+  plan = getPlan();
+  getFx();
+
+  if (portfolio.length === 0) {
+    document.getElementById('summaryCards').innerHTML =
+      '<div class="empty-msg" style="grid-column:1/-1"><div class="big">📭</div>No positions yet. Go to <strong>Positions</strong> tab to add your investments.</div>';
+    document.getElementById('perfBody').innerHTML = '';
+    return;
+  }
+
+  // Fetch prices
+  document.getElementById('perfBody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#8b949e">⏳ Fetching prices...</td></tr>';
+  const prices = await refreshAllPrices();
+
+  // Calculate portfolio data
+  let totalValueThb = 0;
+  let totalCostThb = 0;
+  let rows = [];
+
+  for (const p of portfolio) {
+    const currentPrice = prices[p.id] || 0;
+    const costTotal = p.quantity * p.costPerUnit;
+    const valueTotal = p.quantity * currentPrice;
+    const pl = valueTotal - costTotal;
+    const plPct = costTotal > 0 ? (pl / costTotal) * 100 : 0;
+
+    // Convert to THB
+    const fx = p.currency === 'USD' ? fxRate : 1;
+    totalCostThb += costTotal * fx;
+    totalValueThb += valueTotal * fx;
+
+    rows.push({ ...p, currentPrice, costTotal, valueTotal, pl, plPct, fx });
+  }
+
+  // Summary cards
+  const plTotal = totalValueThb - totalCostThb;
+  const plTotalPct = totalCostThb > 0 ? (plTotal / totalCostThb) * 100 : 0;
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="summary-card"><div class="val">฿${fmt(totalValueThb)}</div><div class="lbl">Total Value</div></div>
+    <div class="summary-card"><div class="val">฿${fmt(totalCostThb)}</div><div class="lbl">Total Cost</div></div>
+    <div class="summary-card"><div class="val ${plTotal >= 0 ? 'green' : 'red'}">${plTotal >= 0 ? '+' : ''}฿${fmt(Math.abs(plTotal))}</div><div class="lbl">Total P&amp;L</div></div>
+    <div class="summary-card"><div class="val ${plTotalPct >= 0 ? 'green' : 'red'}">${plTotalPct >= 0 ? '+' : ''}${plTotalPct.toFixed(1)}%</div><div class="lbl">Return %</div></div>
+  `;
+
+  // Performance table
+  const allocPct = (val) => totalValueThb > 0 ? (val / totalValueThb) * 100 : 0;
+  let tbody = '';
+  for (const r of rows) {
+    const valThb = r.valueTotal * r.fx;
+    const costThb = r.costTotal * r.fx;
+    tbody += `<tr>
+      <td><strong>${r.ticker}</strong><br><span style="font-size:10px;color:#8b949e">${r.name || ''}</span></td>
+      <td><span style="font-size:11px;color:${CLASS_COLORS[r.assetClass]}">${CLASS_NAMES[r.assetClass] || r.assetClass}</span></td>
+      <td class="right">${r.quantity}</td>
+      <td class="right">฿${fmt(costThb)}</td>
+      <td class="right">฿${fmt(valThb)}</td>
+      <td class="right">฿${fmt(valThb)}</td>
+      <td class="right ${r.pl >= 0 ? 'green' : 'red'}">${r.pl >= 0 ? '+' : ''}฿${fmt(Math.abs(r.pl * r.fx))}</td>
+      <td class="right ${r.plPct >= 0 ? 'green' : 'red'}">${r.plPct >= 0 ? '+' : ''}${r.plPct.toFixed(1)}%</td>
+      <td class="right">${allocPct(valThb).toFixed(1)}%</td>
+    </tr>`;
+  }
+  document.getElementById('perfBody').innerHTML = tbody;
+
+  // Update time
+  document.getElementById('timestamp').textContent = '🕐 Updated: ' + new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
+
+  // Charts
+  renderCharts(rows);
+}
+
+function renderCharts(rows) {
+  // By asset class
+  const classGroups = {};
+  for (const r of rows) {
+    const valThb = r.valueTotal * r.fx;
+    classGroups[r.assetClass] = (classGroups[r.assetClass] || 0) + valThb;
+  }
+
+  const classLabels = Object.keys(classGroups);
+  const classData = Object.values(classGroups);
+  const classColors = classLabels.map(c => CLASS_COLORS[c] || '#8b949e');
+
+  const ctx1 = document.getElementById('allocChart').getContext('2d');
+  if (window.allocChart) window.allocChart.destroy();
+  window.allocChart = new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+      labels: classLabels.map(c => CLASS_NAMES[c] || c),
+      datasets: [{ data: classData, backgroundColor: classColors }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#8b949e', font: { size: 11 } } }
+      }
+    }
+  });
+
+  // By individual asset (top 10)
+  const sorted = rows.sort((a, b) => (b.valueTotal * b.fx) - (a.valueTotal * a.fx));
+  const top10 = sorted.slice(0, 10);
+  const otherValue = sorted.slice(10).reduce((s, r) => s + r.valueTotal * r.fx, 0);
+
+  const assetLabels = top10.map(r => r.ticker);
+  const assetData = top10.map(r => r.valueTotal * r.fx);
+  if (otherValue > 0) { assetLabels.push('Others'); assetData.push(otherValue); }
+
+  const assetColors = ['#f7931a','#8ac53e','#58a6ff','#ffd700','#ef4444','#facc15','#a855f7','#22c55e','#ec4899','#6366f1','#6b7280'];
+
+  const ctx2 = document.getElementById('assetChart').getContext('2d');
+  if (window.assetChart) window.assetChart.destroy();
+  window.assetChart = new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: assetLabels,
+      datasets: [{ data: assetData, backgroundColor: assetColors.slice(0, assetLabels.length) }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#8b949e', font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  POSITIONS PAGE
+// ═══════════════════════════════════════════════════
+
+function renderPositions() {
+  portfolio = getPortfolio();
+  if (portfolio.length === 0) {
+    document.getElementById('posBody').innerHTML =
+      '<tr><td colspan="8" class="empty-msg">No positions yet. Use the form above or load demo data below.</td></tr>';
+    return;
+  }
+  let tbody = '';
+  for (const p of portfolio) {
+    tbody += `<tr>
+      <td><strong>${p.ticker}</strong>${p.name ? '<br><span style="font-size:10px;color:#8b949e">'+p.name+'</span>' : ''}</td>
+      <td>${p.ticker}</td>
+      <td><span style="color:${CLASS_COLORS[p.assetClass]}">${CLASS_NAMES[p.assetClass] || p.assetClass}</span></td>
+      <td class="right">${p.quantity}</td>
+      <td class="right">${p.currency === 'USD' ? '$' : '฿'}${fmt(p.costPerUnit)}</td>
+      <td class="right">${p.currency === 'USD' ? '$' : '฿'}${fmt(p.quantity * p.costPerUnit)}</td>
+      <td>${p.currency}</td>
+      <td class="right">
+        <button class="edit-btn" onclick="editPos('${p.id}')">✏️</button>
+        <span class="del-btn" onclick="delPos('${p.id}')">✕</span>
+      </td>
+    </tr>`;
+  }
+  document.getElementById('posBody').innerHTML = tbody;
+}
+
+function savePosition() {
+  const cls = document.getElementById('f_class').value;
+  const ticker = document.getElementById('f_ticker').value.trim().toUpperCase();
+  const name = document.getElementById('f_name').value.trim();
+  const qty = parseFloat(document.getElementById('f_qty').value);
+  const cost = parseFloat(document.getElementById('f_cost').value);
+  const curr = document.getElementById('f_curr').value;
+  const date = document.getElementById('f_date').value;
+  const notes = document.getElementById('f_notes').value.trim();
+
+  if (!ticker || !qty || !cost) { alert('Please fill ticker, quantity, and cost'); return; }
+
+  portfolio = getPortfolio();
+
+  if (editingId) {
+    // Update existing
+    const idx = portfolio.findIndex(p => p.id === editingId);
+    if (idx >= 0) {
+      portfolio[idx] = { ...portfolio[idx], assetClass: cls, ticker, name, quantity: qty, costPerUnit: cost, currency: curr, dateAcquired: date, notes };
+    }
+    editingId = null;
+    document.getElementById('formTitle').textContent = '➕ Add Position';
+  } else {
+    // New
+    portfolio.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      assetClass: cls, ticker, name, quantity: qty, costPerUnit: cost,
+      currency: curr, dateAcquired: date, notes
+    });
+  }
+
+  savePortfolio();
+  clearForm();
+  renderPositions();
+}
+
+function editPos(id) {
+  portfolio = getPortfolio();
+  const p = portfolio.find(x => x.id === id);
+  if (!p) return;
+  editingId = id;
+  document.getElementById('formTitle').textContent = '✏️ Edit Position';
+  document.getElementById('f_class').value = p.assetClass;
+  document.getElementById('f_ticker').value = p.ticker;
+  document.getElementById('f_name').value = p.name || '';
+  document.getElementById('f_qty').value = p.quantity;
+  document.getElementById('f_cost').value = p.costPerUnit;
+  document.getElementById('f_curr').value = p.currency;
+  document.getElementById('f_date').value = p.dateAcquired || '';
+  document.getElementById('f_notes').value = p.notes || '';
+}
+
+function delPos(id) {
+  if (!confirm('Delete this position?')) return;
+  portfolio = getPortfolio().filter(p => p.id !== id);
+  savePortfolio();
+  renderPositions();
+}
+
+function cancelEdit() {
+  editingId = null;
+  document.getElementById('formTitle').textContent = '➕ Add Position';
+  clearForm();
+}
+
+function clearForm() {
+  document.getElementById('f_ticker').value = '';
+  document.getElementById('f_name').value = '';
+  document.getElementById('f_qty').value = '';
+  document.getElementById('f_cost').value = '';
+  document.getElementById('f_date').value = '';
+  document.getElementById('f_notes').value = '';
+}
+
+function loadDemoData() {
+  if (!confirm('Load demo data? This will replace your current portfolio.')) return;
+  portfolio = [
+    { id: 'demo1', assetClass: 'SET', ticker: 'ADVANC', name: 'Advanced Info Service', quantity: 500, costPerUnit: 220, currency: 'THB', dateAcquired: '2023-06-15', notes: 'Dividend stock' },
+    { id: 'demo2', assetClass: 'SET', ticker: 'PTT', name: 'PTT PCL', quantity: 2000, costPerUnit: 35, currency: 'THB', dateAcquired: '2023-01-10', notes: 'Energy' },
+    { id: 'demo3', assetClass: 'US', ticker: 'AAPL', name: 'Apple Inc.', quantity: 50, costPerUnit: 175, currency: 'USD', dateAcquired: '2024-03-01', notes: 'Tech' },
+    { id: 'demo4', assetClass: 'US', ticker: 'VTI', name: 'Vanguard Total Stock Market ETF', quantity: 20, costPerUnit: 255, currency: 'USD', dateAcquired: '2024-06-01', notes: 'US Index' },
+    { id: 'demo5', assetClass: 'CRYPTO', ticker: 'BTC-USD', name: 'Bitcoin', quantity: 0.5, costPerUnit: 65000, currency: 'USD', dateAcquired: '2024-01-15', notes: '' },
+    { id: 'demo6', assetClass: 'GOLD', ticker: 'XAU', name: 'Gold', quantity: 10, costPerUnit: 4000, currency: 'USD', dateAcquired: '2024-05-01', notes: 'Physical gold' },
+    { id: 'demo7', assetClass: 'BOND', ticker: 'BND', name: 'Vanguard Total Bond ETF', quantity: 100, costPerUnit: 72, currency: 'USD', dateAcquired: '2024-02-01', notes: 'US bonds' },
+    { id: 'demo8', assetClass: 'CASH', ticker: 'FD', name: 'Fixed Deposit', quantity: 1, costPerUnit: 500000, currency: 'THB', dateAcquired: '2024-07-01', notes: '1yr FD 2.5%' },
+  ];
+  savePortfolio();
+  renderPositions();
+  renderDashboard();
+}
+
+function clearAll() {
+  if (!confirm('Delete ALL positions permanently?')) return;
+  if (!confirm('Are you sure? This cannot be undone.')) return;
+  portfolio = [];
+  savePortfolio();
+  renderPositions();
+  renderDashboard();
+}
+
+// ═══════════════════════════════════════════════════
+//  PLAN PAGE
+// ═══════════════════════════════════════════════════
+
+function renderPlan() {
+  plan = getPlan();
+  targets = getTargets();
+  portfolio = getPortfolio();
+
+  document.getElementById('plan_target').value = plan.target;
+  document.getElementById('plan_contrib').value = plan.contrib;
+  document.getElementById('plan_years').value = plan.years;
+
+  // Calculate portfolio value
+  let totalValue = 0;
+  for (const p of portfolio) {
+    const fx = p.currency === 'USD' ? fxRate : 1;
+    totalValue += p.quantity * p.costPerUnit * fx;
+  }
+
+  const progress = plan.target > 0 ? Math.min((totalValue / plan.target) * 100, 100) : 0;
+  const gap = Math.max(plan.target - totalValue, 0);
+
+  // Projected: future value with contributions
+  let projected = totalValue;
+  if (plan.contrib > 0 && plan.years > 0) {
+    const annualReturn = 0.07; // 7% avg return assumption
+    const n = plan.years;
+    const PMT = plan.contrib * 12;
+    projected = totalValue * Math.pow(1 + annualReturn, n) + PMT * ((Math.pow(1 + annualReturn, n) - 1) / annualReturn);
+  }
+
+  document.getElementById('progressFill').style.width = progress + '%';
+  document.getElementById('progressLabel').textContent = progress.toFixed(0) + '% of goal';
+  document.getElementById('progressRemain').textContent = 'Remaining: ฿' + fmt(gap);
+  document.getElementById('plan_total').textContent = '฿' + fmt(totalValue);
+  document.getElementById('plan_target_display').textContent = '฿' + fmt(plan.target);
+  document.getElementById('plan_gap').textContent = '฿' + fmt(gap);
+  document.getElementById('plan_projected').textContent = '฿' + fmt(projected);
+
+  // Target allocation grid
+  let grid = '';
+  for (const [cls, pct] of Object.entries(targets)) {
+    const alloc = computeAlloc(cls);
+    const diff = alloc - pct;
+    grid += `<div class="target-item">
+      <div class="lbl" style="color:${CLASS_COLORS[cls] || '#8b949e'}">${CLASS_NAMES[cls] || cls}</div>
+      <div class="cur">${alloc.toFixed(0)}%</div>
+      <div class="tgt">Target: <span>${pct}%</span></div>
+      <div class="diff ${diff > 2 ? 'green' : diff < -2 ? 'red' : ''}">${diff > 0 ? '▲ +' : diff < 0 ? '▼ ' : ''}${Math.abs(diff).toFixed(0)}%</div>
+    </div>`;
+  }
+  document.getElementById('targetGrid').innerHTML = grid;
+}
+
+function computeAlloc(cls) {
+  portfolio = getPortfolio();
+  let total = 0, clsTotal = 0;
+  for (const p of portfolio) {
+    const fx = p.currency === 'USD' ? fxRate : 1;
+    const val = p.quantity * p.costPerUnit * fx;
+    total += val;
+    if (p.assetClass === cls) clsTotal += val;
+  }
+  return total > 0 ? (clsTotal / total) * 100 : 0;
+}
+
+function savePlan() {
+  plan.target = parseFloat(document.getElementById('plan_target').value) || 0;
+  plan.contrib = parseFloat(document.getElementById('plan_contrib').value) || 0;
+  plan.years = parseInt(document.getElementById('plan_years').value) || 10;
+  savePlanData();
+  renderPlan();
+  alert('✅ Plan saved!');
+}
+
+// ═══════════════════════════════════════════════════
+//  REBALANCE PAGE
+// ═══════════════════════════════════════════════════
+
+function renderRebalance() {
+  portfolio = getPortfolio();
+  targets = getTargets();
+
+  let totalValue = 0;
+  const classValues = {};
+  for (const p of portfolio) {
+    const fx = p.currency === 'USD' ? fxRate : 1;
+    const val = p.quantity * p.costPerUnit * fx;
+    totalValue += val;
+    classValues[p.assetClass] = (classValues[p.assetClass] || 0) + val;
+  }
+
+  // Summary
+  document.getElementById('recoSummary').innerHTML = `
+    <div class="summary-card"><div class="val blue">฿${fmt(totalValue)}</div><div class="lbl">Total Portfolio</div></div>
+    <div class="summary-card"><div class="val" style="color:#22c55e">${portfolio.length}</div><div class="lbl">Positions</div></div>
+    <div class="summary-card"><div class="val">${Object.keys(classValues).length}</div><div class="lbl">Asset Classes</div></div>
+    <div class="summary-card"><div class="val" id="recoCount">0</div><div class="lbl">Recommended Actions</div></div>
+  `;
+
+  let recos = [];
+  let recoCount = 0;
+
+  for (const [cls, targetPct] of Object.entries(targets)) {
+    const currentVal = classValues[cls] || 0;
+    const currentPct = totalValue > 0 ? (currentVal / totalValue) * 100 : 0;
+    const targetVal = totalValue * (targetPct / 100);
+    const drift = currentVal - targetVal;
+    const driftPct = targetVal > 0 ? (drift / targetVal) * 100 : 0;
+
+    if (Math.abs(driftPct) > 5) {
+      recoCount++;
+      const isOver = drift > 0;
+      const action = isOver ? 'SELL' : 'BUY';
+      const actionCls = isOver ? 'sell' : 'buy';
+      const amount = fmt(Math.abs(drift));
+      recos.push({
+        cls, action, actionCls, drift, driftPct,
+        currentPct, targetPct, amount,
+        msg: isOver
+          ? `${CLASS_NAMES[cls]} is <strong>${Math.abs(driftPct).toFixed(0)}% overweight</strong>. Consider selling ~฿${amount} to rebalance toward ${targetPct}% target.`
+          : `${CLASS_NAMES[cls]} is <strong>${Math.abs(driftPct).toFixed(0)}% underweight</strong>. Consider adding ~฿${amount} to reach ${targetPct}% target.`
+      });
+    }
+  }
+
+  document.getElementById('recoCount').textContent = recoCount;
+
+  if (recos.length === 0) {
+    document.getElementById('recoList').innerHTML =
+      '<div class="plan-card" style="text-align:center;color:#22c55e">✅ Portfolio is well balanced! No rebalancing needed.</div>';
+  } else {
+    let html = '';
+    for (const r of recos) {
+      html += `<div class="reco-card ${r.actionCls}">
+        <div class="top">
+          <span style="color:${CLASS_COLORS[r.cls]}">${CLASS_NAMES[r.cls]}</span>
+          <span class="action" style="color:${r.action === 'SELL' ? '#ef4444' : '#22c55e'}">${r.action} ~฿${r.amount}</span>
+        </div>
+        <div class="detail">
+          Current: ${r.currentPct.toFixed(1)}% → Target: ${r.targetPct}%<br>
+          ${r.msg}
+        </div>
+      </div>`;
+    }
+    document.getElementById('recoList').innerHTML = html;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  SETTINGS PAGE
+// ═══════════════════════════════════════════════════
+
+function renderSettings() {
+  targets = getTargets();
+  getFx();
+
+  let html = '';
+  for (const [cls, pct] of Object.entries(targets)) {
+    html += `<div class="form-group">
+      <label style="color:${CLASS_COLORS[cls] || '#8b949e'}">${CLASS_NAMES[cls] || cls} (%)</label>
+      <input type="number" id="target_${cls}" value="${pct}" min="0" max="100" step="1">
+    </div>`;
+  }
+  document.getElementById('targetInputs').innerHTML = html;
+  document.getElementById('fx_rate').value = fxRate;
+}
+
+function saveTargets() {
+  targets = getTargets();
+  for (const cls of Object.keys(targets)) {
+    const val = parseFloat(document.getElementById('target_' + cls).value);
+    if (!isNaN(val)) targets[cls] = val;
+  }
+  saveTargetData();
+  // Normalize to 100%
+  const total = Object.values(targets).reduce((s, v) => s + v, 0);
+  if (total !== 0) {
+    for (const cls of Object.keys(targets)) {
+      targets[cls] = Math.round((targets[cls] / total) * 100);
+    }
+    saveTargetData();
+  }
+  renderSettings();
+  renderPlan();
+  alert('✅ Targets saved!');
+}
+
+function saveFx() {
+  const v = parseFloat(document.getElementById('fx_rate').value);
+  if (!isNaN(v) && v > 0) { fxRate = v; saveFxData(); }
+  alert('✅ Exchange rate saved!');
+}
+
+// ═══════════════════════════════════════════════════
+//  EXPORT / IMPORT
+// ═══════════════════════════════════════════════════
+
+function exportCSV() {
+  portfolio = getPortfolio();
+  if (portfolio.length === 0) { alert('No positions to export'); return; }
+  let csv = 'Asset Class,Ticker,Name,Quantity,Cost per Unit,Currency,Date Acquired,Notes\n';
+  for (const p of portfolio) {
+    csv += `${p.assetClass},${p.ticker},"${p.name || ''}",${p.quantity},${p.costPerUnit},${p.currency},${p.dateAcquired || ''},"${p.notes || ''}"\n`;
+  }
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'joke_portfolio.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importCSV() {
+  document.getElementById('csvFile').click();
+}
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const lines = ev.target.result.split('\n');
+    const newPortfolio = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(',');
+      if (cols.length < 4) continue;
+      const cls = cols[0].trim();
+      const ticker = cols[1].trim().toUpperCase();
+      const name = cols[2] ? cols[2].replace(/"/g, '') : '';
+      const qty = parseFloat(cols[3]);
+      const cost = parseFloat(cols[4]);
+      const curr = (cols[5] || 'THB').trim();
+      const date = cols[6] ? cols[6].trim() : '';
+      const notes = cols[7] ? cols[7].replace(/"/g, '').trim() : '';
+      if (!ticker || isNaN(qty) || isNaN(cost)) continue;
+      newPortfolio.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), assetClass: cls, ticker, name, quantity: qty, costPerUnit: cost, currency: curr, dateAcquired: date, notes });
+    }
+    if (newPortfolio.length > 0) {
+      portfolio = newPortfolio;
+      savePortfolio();
+      renderPositions();
+      alert('✅ Imported ' + newPortfolio.length + ' positions!');
+    } else {
+      alert('⚠️ No valid data found in CSV');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ═══════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById('page-' + this.dataset.page).classList.add('active');
+
+    // Render on switch
+    const page = this.dataset.page;
+    if (page === 'dashboard') renderDashboard();
+    else if (page === 'positions') renderPositions();
+    else if (page === 'plan') renderPlan();
+    else if (page === 'rebalance') renderRebalance();
+    else if (page === 'settings') renderSettings();
+  });
+});
+
+// ═══════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════
+
+function fmt(n) {
+  if (Math.abs(n) >= 1000000) return (n / 1000000).toFixed(2) + 'M';
+  if (Math.abs(n) >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return n.toFixed(2);
+}
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+
+getPortfolio();
+getPlan();
+getTargets();
+getFx();
+
+// Pre-fetch exchange rate
+fetch('https://api.exchangerate-api.com/v4/latest/USD').then(r => r.json()).then(d => {
+  if (d.rates?.THB) {
+    fxRate = d.rates.THB;
+    saveFxData();
+  }
+}).catch(() => {});
+
+renderDashboard();
+renderPositions();
+</script>
+</body>
+</html>
