@@ -305,6 +305,7 @@ footer a{color:#58a6ff;text-decoration:none}
     <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">📋 Export / Import</h3>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-outline" onclick="exportCSV()">📥 Export CSV</button>
+    <a href="sample_portfolio.csv" class="btn btn-outline" style="text-decoration:none;display:inline-block" download>📄 Download CSV Template</a>
       <button class="btn btn-outline" onclick="importCSV()">📤 Import CSV</button>
     </div>
     <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="handleImport(event)">
