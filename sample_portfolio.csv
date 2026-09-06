@@ -1,0 +1,16 @@
+Asset Class,Source,Ticker,Name,Quantity,Cost per Unit,Currency,Date Acquired,Notes
+SET,KKP,ADVANC,Advanced Info Service,500,220,THB,2023-06-15,Dividend stock
+SET,KKP,PTT,PTT PCL,2000,35,THB,2023-01-10,Energy
+SET,KKP,SCB,Siam Commercial Bank,300,120,THB,2024-03-01,
+SET,KKP,CPALL,CP All PCL,1000,65,THB,2024-02-15,
+US,DIME,AAPL,Apple Inc.,50,175,USD,2024-03-01,Tech
+US,DIME,MSFT,Microsoft Corp.,10,420,USD,2024-06-01,
+US,IBKR,VTI,Vanguard Total Stock Market ETF,20,255,USD,2024-06-01,US Index
+US,IBKR,VXUS,Vanguard Total International Stock ETF,15,60,USD,2024-08-01,International
+GOLD,DIME,XAU,Gold,10,4000,USD,2024-05-01,Physical gold
+CRYPTO,BINANCE,BTC-USD,Bitcoin,0.5,65000,USD,2024-01-15,
+CRYPTO,BINANCE,ETH-USD,Ethereum,2,3200,USD,2024-02-10,
+BOND,IBKR,BND,Vanguard Total Bond ETF,100,72,USD,2024-02-01,US bonds
+BOND,SCB,THB-BOND,Thai Govt Bond Fund,50000,10,THB,2024-07-01,Fixed income
+CASH,SCB,FD,Fixed Deposit,1,500000,THB,2024-07-01,1yr FD 2.5%
+CASH,KKP,SAVINGS,Savings Account,1,200000,THB,2024-01-01,Emergency fund
