@@ -134,7 +134,7 @@ footer a{color:#58a6ff;text-decoration:none}
   <div class="table-wrap" id="perfTableWrap">
     <table id="perfTable">
       <thead>
-        <tr><th>Asset</th><th>Type</th><th class="right">Qty</th><th class="right">Cost</th><th class="right">Current</th><th class="right">Value</th><th class="right">P&amp;L</th><th class="right">%</th><th class="right">Alloc %</th></tr>
+        <tr><th>Asset</th><th>Type</th><th>Source</th><th class="right">Qty</th><th class="right">Cost</th><th class="right">Current Value</th><th class="right">P&amp;L</th><th class="right">%</th><th class="right">Alloc %</th></tr>
       </thead>
       <tbody id="perfBody"></tbody>
     </table>
@@ -155,6 +155,22 @@ footer a{color:#58a6ff;text-decoration:none}
           <option value="GOLD">🥇 Gold</option>
           <option value="BOND">📜 Bond</option>
           <option value="CASH">💵 Cash/FD</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Asset Source <span style="color:#22c55e">(required)</span></label>
+        <select id="f_source">
+          <option value="">— Select Source —</option>
+          <option value="KKP">🏦 KKP (SET)</option>
+          <option value="DIME">🥇 Dime (Gold/US)</option>
+          <option value="BINANCE">₿ Binance (Crypto)</option>
+          <option value="SCB">🏦 SCB</option>
+          <option value="BBL">🏦 BBL</option>
+          <option value="KTB">🏦 KTB</option>
+          <option value="KRUNGSRI">🏦 Krungsri</option>
+          <option value="CIMB">🏦 CIMB</option>
+          <option value="IBKR">📈 Interactive Brokers</option>
+          <option value="OTHER">📂 Other</option>
         </select>
       </div>
       <div class="form-group">
@@ -202,7 +218,7 @@ footer a{color:#58a6ff;text-decoration:none}
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Asset</th><th>Ticker</th><th>Class</th><th class="right">Qty</th><th class="right">Cost/Unit</th><th class="right">Total Cost</th><th>Currency</th><th></th></tr>
+        <tr><th>Name</th><th>Ticker</th><th>Class</th><th>Source</th><th class="right">Qty</th><th class="right">Cost/Unit</th><th class="right">Total Cost</th><th>Curr</th><th></th></tr>
       </thead>
       <tbody id="posBody"></tbody>
     </table>
@@ -310,6 +326,11 @@ const CLASS_COLORS = {
 const CLASS_NAMES = {
   SET: '🇹🇭 SET', US: '🇺🇸 US Stocks', CRYPTO: '₿ Crypto',
   GOLD: '🥇 Gold', BOND: '📜 Bond', CASH: '💵 Cash'
+};
+const SOURCE_ICONS = {
+  KKP: '🏦', DIME: '🥇', BINANCE: '₿', SCB: '🏦',
+  BBL: '🏦', KTB: '🏦', KRUNGSRI: '🏦', CIMB: '🏦',
+  IBKR: '📈', OTHER: '📂'
 };
 
 let portfolio = [];
@@ -493,12 +514,13 @@ async function renderDashboard() {
   for (const r of rows) {
     const valThb = r.valueTotal * r.fx;
     const costThb = r.costTotal * r.fx;
+    const srcIcon = SOURCE_ICONS[r.source] || '📂';
     tbody += `<tr>
       <td><strong>${r.ticker}</strong><br><span style="font-size:10px;color:#8b949e">${r.name || ''}</span></td>
       <td><span style="font-size:11px;color:${CLASS_COLORS[r.assetClass]}">${CLASS_NAMES[r.assetClass] || r.assetClass}</span></td>
+      <td style="font-size:11px">${r.source ? srcIcon + ' ' + r.source : '<span style="color:#484f58">—</span>'}</td>
       <td class="right">${r.quantity}</td>
       <td class="right">฿${fmt(costThb)}</td>
-      <td class="right">฿${fmt(valThb)}</td>
       <td class="right">฿${fmt(valThb)}</td>
       <td class="right ${r.pl >= 0 ? 'green' : 'red'}">${r.pl >= 0 ? '+' : ''}฿${fmt(Math.abs(r.pl * r.fx))}</td>
       <td class="right ${r.plPct >= 0 ? 'green' : 'red'}">${r.plPct >= 0 ? '+' : ''}${r.plPct.toFixed(1)}%</td>
@@ -578,15 +600,17 @@ function renderPositions() {
   portfolio = getPortfolio();
   if (portfolio.length === 0) {
     document.getElementById('posBody').innerHTML =
-      '<tr><td colspan="8" class="empty-msg">No positions yet. Use the form above or load demo data below.</td></tr>';
+      '<tr><td colspan="9" class="empty-msg">No positions yet. Use the form above or load demo data below.</td></tr>';
     return;
   }
   let tbody = '';
   for (const p of portfolio) {
+    const srcIcon = SOURCE_ICONS[p.source] || '📂';
     tbody += `<tr>
       <td><strong>${p.ticker}</strong>${p.name ? '<br><span style="font-size:10px;color:#8b949e">'+p.name+'</span>' : ''}</td>
       <td>${p.ticker}</td>
       <td><span style="color:${CLASS_COLORS[p.assetClass]}">${CLASS_NAMES[p.assetClass] || p.assetClass}</span></td>
+      <td>${p.source ? srcIcon + ' ' + p.source : '<span style="color:#484f58">—</span>'}</td>
       <td class="right">${p.quantity}</td>
       <td class="right">${p.currency === 'USD' ? '$' : '฿'}${fmt(p.costPerUnit)}</td>
       <td class="right">${p.currency === 'USD' ? '$' : '฿'}${fmt(p.quantity * p.costPerUnit)}</td>
@@ -602,6 +626,7 @@ function renderPositions() {
 
 function savePosition() {
   const cls = document.getElementById('f_class').value;
+  const source = document.getElementById('f_source').value;
   const ticker = document.getElementById('f_ticker').value.trim().toUpperCase();
   const name = document.getElementById('f_name').value.trim();
   const qty = parseFloat(document.getElementById('f_qty').value);
@@ -611,6 +636,7 @@ function savePosition() {
   const notes = document.getElementById('f_notes').value.trim();
 
   if (!ticker || !qty || !cost) { alert('Please fill ticker, quantity, and cost'); return; }
+  if (!source) { alert('Please select an Asset Source (e.g. KKP, Dime, etc.)'); return; }
 
   portfolio = getPortfolio();
 
@@ -618,7 +644,7 @@ function savePosition() {
     // Update existing
     const idx = portfolio.findIndex(p => p.id === editingId);
     if (idx >= 0) {
-      portfolio[idx] = { ...portfolio[idx], assetClass: cls, ticker, name, quantity: qty, costPerUnit: cost, currency: curr, dateAcquired: date, notes };
+      portfolio[idx] = { ...portfolio[idx], assetClass: cls, source, ticker, name, quantity: qty, costPerUnit: cost, currency: curr, dateAcquired: date, notes };
     }
     editingId = null;
     document.getElementById('formTitle').textContent = '➕ Add Position';
@@ -626,7 +652,7 @@ function savePosition() {
     // New
     portfolio.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
-      assetClass: cls, ticker, name, quantity: qty, costPerUnit: cost,
+      assetClass: cls, source, ticker, name, quantity: qty, costPerUnit: cost,
       currency: curr, dateAcquired: date, notes
     });
   }
@@ -643,6 +669,7 @@ function editPos(id) {
   editingId = id;
   document.getElementById('formTitle').textContent = '✏️ Edit Position';
   document.getElementById('f_class').value = p.assetClass;
+  document.getElementById('f_source').value = p.source || '';
   document.getElementById('f_ticker').value = p.ticker;
   document.getElementById('f_name').value = p.name || '';
   document.getElementById('f_qty').value = p.quantity;
@@ -666,6 +693,8 @@ function cancelEdit() {
 }
 
 function clearForm() {
+  document.getElementById('f_class').value = 'SET';
+  document.getElementById('f_source').value = '';
   document.getElementById('f_ticker').value = '';
   document.getElementById('f_name').value = '';
   document.getElementById('f_qty').value = '';
@@ -677,14 +706,14 @@ function clearForm() {
 function loadDemoData() {
   if (!confirm('Load demo data? This will replace your current portfolio.')) return;
   portfolio = [
-    { id: 'demo1', assetClass: 'SET', ticker: 'ADVANC', name: 'Advanced Info Service', quantity: 500, costPerUnit: 220, currency: 'THB', dateAcquired: '2023-06-15', notes: 'Dividend stock' },
-    { id: 'demo2', assetClass: 'SET', ticker: 'PTT', name: 'PTT PCL', quantity: 2000, costPerUnit: 35, currency: 'THB', dateAcquired: '2023-01-10', notes: 'Energy' },
-    { id: 'demo3', assetClass: 'US', ticker: 'AAPL', name: 'Apple Inc.', quantity: 50, costPerUnit: 175, currency: 'USD', dateAcquired: '2024-03-01', notes: 'Tech' },
-    { id: 'demo4', assetClass: 'US', ticker: 'VTI', name: 'Vanguard Total Stock Market ETF', quantity: 20, costPerUnit: 255, currency: 'USD', dateAcquired: '2024-06-01', notes: 'US Index' },
-    { id: 'demo5', assetClass: 'CRYPTO', ticker: 'BTC-USD', name: 'Bitcoin', quantity: 0.5, costPerUnit: 65000, currency: 'USD', dateAcquired: '2024-01-15', notes: '' },
-    { id: 'demo6', assetClass: 'GOLD', ticker: 'XAU', name: 'Gold', quantity: 10, costPerUnit: 4000, currency: 'USD', dateAcquired: '2024-05-01', notes: 'Physical gold' },
-    { id: 'demo7', assetClass: 'BOND', ticker: 'BND', name: 'Vanguard Total Bond ETF', quantity: 100, costPerUnit: 72, currency: 'USD', dateAcquired: '2024-02-01', notes: 'US bonds' },
-    { id: 'demo8', assetClass: 'CASH', ticker: 'FD', name: 'Fixed Deposit', quantity: 1, costPerUnit: 500000, currency: 'THB', dateAcquired: '2024-07-01', notes: '1yr FD 2.5%' },
+    { id: 'demo1', assetClass: 'SET', source: 'KKP', ticker: 'ADVANC', name: 'Advanced Info Service', quantity: 500, costPerUnit: 220, currency: 'THB', dateAcquired: '2023-06-15', notes: 'Dividend stock' },
+    { id: 'demo2', assetClass: 'SET', source: 'KKP', ticker: 'PTT', name: 'PTT PCL', quantity: 2000, costPerUnit: 35, currency: 'THB', dateAcquired: '2023-01-10', notes: 'Energy' },
+    { id: 'demo3', assetClass: 'US', source: 'DIME', ticker: 'AAPL', name: 'Apple Inc.', quantity: 50, costPerUnit: 175, currency: 'USD', dateAcquired: '2024-03-01', notes: 'Tech' },
+    { id: 'demo4', assetClass: 'US', source: 'IBKR', ticker: 'VTI', name: 'Vanguard Total Stock Market ETF', quantity: 20, costPerUnit: 255, currency: 'USD', dateAcquired: '2024-06-01', notes: 'US Index' },
+    { id: 'demo5', assetClass: 'CRYPTO', source: 'BINANCE', ticker: 'BTC-USD', name: 'Bitcoin', quantity: 0.5, costPerUnit: 65000, currency: 'USD', dateAcquired: '2024-01-15', notes: '' },
+    { id: 'demo6', assetClass: 'GOLD', source: 'DIME', ticker: 'XAU', name: 'Gold', quantity: 10, costPerUnit: 4000, currency: 'USD', dateAcquired: '2024-05-01', notes: 'Physical gold' },
+    { id: 'demo7', assetClass: 'BOND', source: 'IBKR', ticker: 'BND', name: 'Vanguard Total Bond ETF', quantity: 100, costPerUnit: 72, currency: 'USD', dateAcquired: '2024-02-01', notes: 'US bonds' },
+    { id: 'demo8', assetClass: 'CASH', source: 'SCB', ticker: 'FD', name: 'Fixed Deposit', quantity: 1, costPerUnit: 500000, currency: 'THB', dateAcquired: '2024-07-01', notes: '1yr FD 2.5%' },
   ];
   savePortfolio();
   renderPositions();
@@ -902,9 +931,9 @@ function saveFx() {
 function exportCSV() {
   portfolio = getPortfolio();
   if (portfolio.length === 0) { alert('No positions to export'); return; }
-  let csv = 'Asset Class,Ticker,Name,Quantity,Cost per Unit,Currency,Date Acquired,Notes\n';
+  let csv = 'Asset Class,Source,Ticker,Name,Quantity,Cost per Unit,Currency,Date Acquired,Notes\n';
   for (const p of portfolio) {
-    csv += `${p.assetClass},${p.ticker},"${p.name || ''}",${p.quantity},${p.costPerUnit},${p.currency},${p.dateAcquired || ''},"${p.notes || ''}"\n`;
+    csv += `${p.assetClass},${p.source || ''},${p.ticker},"${p.name || ''}",${p.quantity},${p.costPerUnit},${p.currency},${p.dateAcquired || ''},"${p.notes || ''}"\n`;
   }
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
@@ -928,15 +957,16 @@ function handleImport(e) {
       const cols = lines[i].split(',');
       if (cols.length < 4) continue;
       const cls = cols[0].trim();
-      const ticker = cols[1].trim().toUpperCase();
-      const name = cols[2] ? cols[2].replace(/"/g, '') : '';
-      const qty = parseFloat(cols[3]);
-      const cost = parseFloat(cols[4]);
-      const curr = (cols[5] || 'THB').trim();
-      const date = cols[6] ? cols[6].trim() : '';
-      const notes = cols[7] ? cols[7].replace(/"/g, '').trim() : '';
+      const source = (cols[1] || '').trim();
+      const ticker = cols[2].trim().toUpperCase();
+      const name = cols[3] ? cols[3].replace(/"/g, '') : '';
+      const qty = parseFloat(cols[4]);
+      const cost = parseFloat(cols[5]);
+      const curr = (cols[6] || 'THB').trim();
+      const date = cols[7] ? cols[7].trim() : '';
+      const notes = cols[8] ? cols[8].replace(/"/g, '').trim() : '';
       if (!ticker || isNaN(qty) || isNaN(cost)) continue;
-      newPortfolio.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), assetClass: cls, ticker, name, quantity: qty, costPerUnit: cost, currency: curr, dateAcquired: date, notes });
+      newPortfolio.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), assetClass: cls, source, ticker, name, quantity: qty, costPerUnit: cost, currency: curr, dateAcquired: date, notes });
     }
     if (newPortfolio.length > 0) {
       portfolio = newPortfolio;
