@@ -134,7 +134,7 @@ footer a{color:#58a6ff;text-decoration:none}
   <div class="table-wrap" id="perfTableWrap">
     <table id="perfTable">
       <thead>
-        <tr><th>Asset</th><th>Type</th><th>Source</th><th class="right">Qty</th><th class="right">Cost</th><th class="right">Current Value</th><th class="right">P&amp;L</th><th class="right">%</th><th class="right">Alloc %</th></tr>
+        <tr><th>Asset</th><th>Type</th><th>Source</th><th class="right">Qty</th><th class="right">Cost/Unit (USD)</th><th class="right">Cost/Unit (THB)</th><th class="right">Total Cost (THB)</th><th class="right">Current Value (THB)</th><th class="right">P&amp;L (THB)</th><th class="right">%</th><th class="right">Alloc %</th></tr>
       </thead>
       <tbody id="perfBody"></tbody>
     </table>
@@ -457,7 +457,7 @@ async function renderDashboard() {
   }
 
   // Fetch prices
-  document.getElementById('perfBody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#8b949e">⏳ Fetching prices...</td></tr>';
+  document.getElementById('perfBody').innerHTML = '<tr><td colspan="11" style="text-align:center;color:#8b949e">⏳ Fetching prices...</td></tr>';
   const prices = await refreshAllPrices();
 
   // Calculate portfolio data
@@ -474,19 +474,21 @@ async function renderDashboard() {
 
     // Convert to THB
     const fx = p.currency === 'USD' ? fxRate : 1;
-    totalCostThb += costTotal * fx;
-    totalValueThb += valueTotal * fx;
+    const costThb = costTotal * fx;
+    const valThb = valueTotal * fx;
+    totalCostThb += costThb;
+    totalValueThb += valThb;
 
-    rows.push({ ...p, currentPrice, costTotal, valueTotal, pl, plPct, fx });
+    rows.push({ ...p, currentPrice, costTotal, valueTotal, costThb, valThb, pl, plPct, fx });
   }
 
   // Summary cards
   const plTotal = totalValueThb - totalCostThb;
   const plTotalPct = totalCostThb > 0 ? (plTotal / totalCostThb) * 100 : 0;
   document.getElementById('summaryCards').innerHTML = `
-    <div class="summary-card"><div class="val">฿${fmt(totalValueThb)}</div><div class="lbl">Total Value</div></div>
-    <div class="summary-card"><div class="val">฿${fmt(totalCostThb)}</div><div class="lbl">Total Cost</div></div>
-    <div class="summary-card"><div class="val ${plTotal >= 0 ? 'green' : 'red'}">${plTotal >= 0 ? '+' : ''}฿${fmt(Math.abs(plTotal))}</div><div class="lbl">Total P&amp;L</div></div>
+    <div class="summary-card"><div class="val">฿${fmt(totalValueThb)}</div><div class="lbl">Total Value (THB)</div></div>
+    <div class="summary-card"><div class="val">฿${fmt(totalCostThb)}</div><div class="lbl">Total Cost (THB)</div></div>
+    <div class="summary-card"><div class="val ${plTotal >= 0 ? 'green' : 'red'}">${plTotal >= 0 ? '+' : ''}฿${fmt(Math.abs(plTotal))}</div><div class="lbl">Total P&amp;L (THB)</div></div>
     <div class="summary-card"><div class="val ${plTotalPct >= 0 ? 'green' : 'red'}">${plTotalPct >= 0 ? '+' : ''}${plTotalPct.toFixed(1)}%</div><div class="lbl">Return %</div></div>
   `;
 
@@ -494,36 +496,63 @@ async function renderDashboard() {
   const allocPct = (val) => totalValueThb > 0 ? (val / totalValueThb) * 100 : 0;
   let tbody = '';
   for (const r of rows) {
-    const valThb = r.valueTotal * r.fx;
-    const costThb = r.costTotal * r.fx;
+    const costPerUnitUsd = r.currency === 'USD' ? r.costPerUnit : r.costPerUnit / fxRate;
+    const costPerUnitThb = r.currency === 'USD' ? r.costPerUnit * fxRate : r.costPerUnit;
     const srcIcon = SOURCE_ICONS[r.source] || '📂';
     tbody += `<tr>
       <td><strong>${r.ticker}</strong><br><span style="font-size:10px;color:#8b949e">${r.name || ''}</span></td>
       <td><span style="font-size:11px;color:${CLASS_COLORS[r.assetClass]}">${CLASS_NAMES[r.assetClass] || r.assetClass}</span></td>
       <td style="font-size:11px">${r.source ? srcIcon + ' ' + r.source : '<span style="color:#484f58">—</span>'}</td>
       <td class="right">${r.quantity}</td>
-      <td class="right">฿${fmt(costThb)}</td>
-      <td class="right">฿${fmt(valThb)}</td>
+      <td class="right">$${r.currency === 'USD' ? fmt(r.costPerUnit) : fmt(r.costPerUnit / fxRate)}</td>
+      <td class="right">฿${fmt(costPerUnitThb)}</td>
+      <td class="right">฿${fmt(r.costThb)}</td>
+      <td class="right">฿${fmt(r.valThb)}</td>
       <td class="right ${r.pl >= 0 ? 'green' : 'red'}">${r.pl >= 0 ? '+' : ''}฿${fmt(Math.abs(r.pl * r.fx))}</td>
       <td class="right ${r.plPct >= 0 ? 'green' : 'red'}">${r.plPct >= 0 ? '+' : ''}${r.plPct.toFixed(1)}%</td>
-      <td class="right">${allocPct(valThb).toFixed(1)}%</td>
+      <td class="right">${allocPct(r.valThb).toFixed(1)}%</td>
     </tr>`;
   }
+  // Summary row
+  const avgCostPerUnitUsd = totalCostThb > 0 && fxRate > 0 ? totalCostThb / fxRate / portfolio.reduce((s, p) => s + p.quantity, 0) : 0;
+  tbody += `<tr style="border-top:2px solid #58a6ff;font-weight:700;background:#1a2332">
+    <td><strong>📊 TOTAL</strong></td>
+    <td></td><td></td>
+    <td class="right">${portfolio.reduce((s, p) => s + p.quantity, 0)}</td>
+    <td class="right">—</td>
+    <td class="right">—</td>
+    <td class="right blue">฿${fmt(totalCostThb)}</td>
+    <td class="right blue">฿${fmt(totalValueThb)}</td>
+    <td class="right ${plTotal >= 0 ? 'green' : 'red'}">${plTotal >= 0 ? '+' : ''}฿${fmt(Math.abs(plTotal))}</td>
+    <td class="right ${plTotalPct >= 0 ? 'green' : 'red'}">${plTotalPct >= 0 ? '+' : ''}${plTotalPct.toFixed(1)}%</td>
+    <td class="right blue">100%</td>
+  </tr>`;
   document.getElementById('perfBody').innerHTML = tbody;
 
   // Update time
   document.getElementById('timestamp').textContent = '🕐 Updated: ' + new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
 
-  // Charts (wait for Chart.js if needed)
-  if (typeof Chart !== 'undefined') {
-    try { renderCharts(rows); } catch(e) { console.warn('Chart render error:', e); }
-  } else {
-    document.getElementById('timestamp').textContent += ' (Chart.js loading...)';
-    setTimeout(() => { try { renderCharts(rows); } catch(e) {} }, 1000);
-  }
+  // Charts
+  renderCharts(rows);
 }
 
 function renderCharts(rows) {
+  // Check Chart.js is loaded
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js not loaded yet, retrying...');
+    setTimeout(() => renderCharts(rows), 500);
+    return;
+  }
+
+  // Check canvas elements exist
+  const ctx1 = document.getElementById('allocChart');
+  const ctx2 = document.getElementById('assetChart');
+  if (!ctx1 || !ctx2) {
+    console.warn('Chart canvases not found, retrying...');
+    setTimeout(() => renderCharts(rows), 500);
+    return;
+  }
+
   // By asset class
   const classGroups = {};
   for (const r of rows) {
@@ -535,9 +564,8 @@ function renderCharts(rows) {
   const classData = Object.values(classGroups);
   const classColors = classLabels.map(c => CLASS_COLORS[c] || '#8b949e');
 
-  const ctx1 = document.getElementById('allocChart').getContext('2d');
   if (window.allocChart) window.allocChart.destroy();
-  window.allocChart = new Chart(ctx1, {
+  window.allocChart = new Chart(ctx1.getContext('2d'), {
     type: 'doughnut',
     data: {
       labels: classLabels.map(c => CLASS_NAMES[c] || c),
@@ -552,7 +580,7 @@ function renderCharts(rows) {
   });
 
   // By individual asset (top 10)
-  const sorted = rows.sort((a, b) => (b.valueTotal * b.fx) - (a.valueTotal * a.fx));
+  const sorted = [...rows].sort((a, b) => (b.valueTotal * b.fx) - (a.valueTotal * a.fx));
   const top10 = sorted.slice(0, 10);
   const otherValue = sorted.slice(10).reduce((s, r) => s + r.valueTotal * r.fx, 0);
 
@@ -562,9 +590,8 @@ function renderCharts(rows) {
 
   const assetColors = ['#f7931a','#8ac53e','#58a6ff','#ffd700','#ef4444','#facc15','#a855f7','#22c55e','#ec4899','#6366f1','#6b7280'];
 
-  const ctx2 = document.getElementById('assetChart').getContext('2d');
   if (window.assetChart) window.assetChart.destroy();
-  window.assetChart = new Chart(ctx2, {
+  window.assetChart = new Chart(ctx2.getContext('2d'), {
     type: 'doughnut',
     data: {
       labels: assetLabels,
