@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Dashboard — BTC · ETH · Gold</title>
+<meta name="description" content="Live BTC, ETH, Gold prices with AI commentary and interactive TradingView charts.">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'SF Pro', 'Segoe UI', Roboto, system-ui, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+    padding: 24px;
+  }
+  .container { max-width: 1280px; margin: 0 auto; }
+
+  /* ── Header ── */
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 28px; flex-wrap: wrap; gap: 12px;
+  }
+  h1 {
+    font-size: 22px; font-weight: 600;
+    background: linear-gradient(135deg, #f7931a, #8ac53e, #ffd700);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .last-updated {
+    font-size: 13px; color: #8b949e;
+    background: #161b22; padding: 6px 14px; border-radius: 20px;
+    border: 1px solid #30363d;
+  }
+
+  /* ── Price Cards ── */
+  .price-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 720px) { .price-grid { grid-template-columns: 1fr; } }
+  .price-card {
+    background: #161b22; border: 1px solid #30363d; border-radius: 12px;
+    padding: 20px; position: relative; overflow: hidden;
+  }
+  .price-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .price-card.btc::before { background: #f7931a; }
+  .price-card.eth::before { background: #8ac53e; }
+  .price-card.gold::before { background: #ffd700; }
+  .price-label {
+    font-size: 13px; color: #8b949e; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 6px;
+  }
+  .price-value {
+    font-size: 28px; font-weight: 700; margin-bottom: 4px;
+  }
+  .price-change {
+    font-size: 14px; font-weight: 500;
+  }
+  .price-change.up { color: #22c55e; }
+  .price-change.down { color: #ef4444; }
+
+  /* ── Commentary ── */
+  .commentary-box {
+    background: #161b22; border: 1px solid #30363d; border-radius: 12px;
+    padding: 20px 24px; margin-bottom: 24px;
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  @media (max-width: 600px) { .commentary-box { flex-direction: column; } }
+  .commentary-icon {
+    font-size: 24px; flex-shrink: 0; margin-top: 2px;
+  }
+  .commentary-content { flex: 1; }
+  .commentary-content p {
+    font-size: 15px; line-height: 1.6; color: #c9d1d9;
+  }
+  .commentary-meta {
+    font-size: 12px; color: #8b949e; margin-top: 8px;
+  }
+  .refresh-btn {
+    flex-shrink: 0; background: #21262d; border: 1px solid #30363d;
+    color: #e6edf3; padding: 8px 20px; border-radius: 8px;
+    cursor: pointer; font-size: 13px; font-weight: 500;
+    display: flex; align-items: center; gap: 6px;
+    transition: background 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+  .refresh-btn:hover { background: #30363d; border-color: #8b949e; }
+  .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .refresh-btn .spinner {
+    display: none; width: 14px; height: 14px;
+    border: 2px solid #8b949e; border-top-color: #e6edf3;
+    border-radius: 50%; animation: spin 0.6s linear infinite;
+  }
+  .refresh-btn.loading .spinner { display: inline-block; }
+  .refresh-btn.loading .btn-text { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Charts ── */
+  .chart-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  @media (max-width: 960px) { .chart-grid { grid-template-columns: 1fr; } }
+  .chart-card {
+    background: #161b22; border: 1px solid #30363d; border-radius: 12px;
+    overflow: hidden; min-height: 400px;
+  }
+  .chart-header {
+    padding: 12px 16px; border-bottom: 1px solid #30363d;
+    font-size: 13px; font-weight: 600; color: #8b949e;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .tv-chart { height: 380px; width: 100%; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center; margin-top: 32px; padding: 16px;
+    font-size: 12px; color: #484f58;
+  }
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 999;
+    background: #21262d; border: 1px solid #30363d; border-radius: 8px;
+    padding: 12px 20px; font-size: 13px; color: #e6edf3;
+    display: none; animation: fadeIn 0.3s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .toast.show { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <h1>📊 Investment Dashboard</h1>
+    <span class="last-updated">🕐 2026-09-06 03:09 UTC</span>
+  </header>
+
+  <!-- Price Cards -->
+  <div class="price-grid">
+    <div class="price-card btc">
+      <div class="price-label">Bitcoin <span style="color:#f7931a">BTC</span></div>
+      <div class="price-value">$79,914.00</div>
+      <div class="price-change up" style="color:#22c55e">▲ +0.47%</div>
+    </div>
+    <div class="price-card eth">
+      <div class="price-label">Ethereum <span style="color:#8ac53e">ETH</span></div>
+      <div class="price-value">$2,502.58</div>
+      <div class="price-change up" style="color:#22c55e">▲ +2.07%</div>
+    </div>
+    <div class="price-card gold">
+      <div class="price-label">Gold <span style="color:#ffd700">XAU</span></div>
+      <div class="price-value">$4,431.10</div>
+      <div class="price-change up" style="color:#22c55e">▲ +0.00%</div>
+    </div>
+  </div>
+
+  <!-- Commentary Section -->
+  <div class="commentary-box">
+    <div class="commentary-icon">💬</div>
+    <div class="commentary-content">
+      <p id="commentary-text">Bitcoin is maintaining strong momentum near 0K, supported by growing institutional adoption and favorable macro conditions. Ethereum continues to show resilience with increasing DeFi activity and Layer-2 scaling developments. Gold remains a robust hedge above ,400 amid global economic uncertainties, reinforcing its status as a premier safe-haven asset.</p>
+      <div class="commentary-meta">AI-generated market commentary</div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="refreshCommentary()" title="Refresh prices & commentary (free, client-side)">
+      <span class="spinner"></span>
+      <span class="btn-text">🔄 Refresh</span>
+    </button>
+  </div>
+
+  <!-- TradingView Charts -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-header">🟠 BTC / USD</div>
+      <div class="tv-chart" id="tv-btc"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">🟢 ETH / USD</div>
+      <div class="tv-chart" id="tv-eth"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">🌟 Gold / USD</div>
+      <div class="tv-chart" id="tv-gold"></div>
+    </div>
+  </div>
+
+  <footer>
+    Data: CoinGecko · Yahoo Finance · TradingView &nbsp;·&nbsp; Made by <a href="https://t.me/your_bot" target="_blank">โซโล</a>
+  </footer>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- TradingView Library -->
+<script src="https://s3.tradingview.com/tv.js"></script>
+
+<!-- Main Script -->
+<script>
+// ── Change class helper ──
+document.querySelectorAll('.price-card').forEach(card => {
+  const el = card.querySelector('.price-change');
+  if (el && el.textContent.includes('▼')) {
+    el.classList.add('down');
+  } else {
+    el.classList.add('up');
+  }
+});
+
+// ── TradingView Charts ──
+function initTradingView() {
+  if (typeof TradingView === 'undefined') {
+    setTimeout(initTradingView, 500);
+    return;
+  }
+  const theme = 'dark';
+
+  new TradingView.widget({
+    container_id: 'tv-btc',
+    symbol: 'BINANCE:BTCUSDT',
+    interval: '60',
+    theme: theme,
+    style: '1',
+    locale: 'en',
+    toolbar_bg: '#161b22',
+    enable_publishing: false,
+    allow_symbol_change: false,
+    hide_top_toolbar: true,
+    save_image: false,
+    height: 380,
+    width: '100%',
+    studies: ['RSI@tv-basicstudies'],
+    withdateranges: true,
+    timezone: 'Asia/Bangkok',
+  });
+
+  new TradingView.widget({
+    container_id: 'tv-eth',
+    symbol: 'BINANCE:ETHUSDT',
+    interval: '60',
+    theme: theme,
+    style: '1',
+    locale: 'en',
+    toolbar_bg: '#161b22',
+    enable_publishing: false,
+    allow_symbol_change: false,
+    hide_top_toolbar: true,
+    save_image: false,
+    height: 380,
+    width: '100%',
+    studies: ['RSI@tv-basicstudies'],
+    withdateranges: true,
+    timezone: 'Asia/Bangkok',
+  });
+
+  new TradingView.widget({
+    container_id: 'tv-gold',
+    symbol: 'TVC:GOLD',
+    interval: '60',
+    theme: theme,
+    style: '1',
+    locale: 'en',
+    toolbar_bg: '#161b22',
+    enable_publishing: false,
+    allow_symbol_change: false,
+    hide_top_toolbar: true,
+    save_image: false,
+    height: 380,
+    width: '100%',
+    studies: ['RSI@tv-basicstudies'],
+    withdateranges: true,
+    timezone: 'Asia/Bangkok',
+  });
+}
+initTradingView();
+
+// ── Refresh: Client-side only (zero cost) ──
+async function refreshCommentary() {
+  const btn = document.getElementById('refreshBtn');
+  const textEl = document.getElementById('commentary-text');
+  const toast = document.getElementById('toast');
+
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    // Fetch fresh prices from CoinGecko + Gold API
+    const [cgResp, goldResp] = await Promise.all([
+      fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true'),
+      fetch('https://api.gold-api.com/price/XAU'),
+    ]);
+
+    const cg = await cgResp.json();
+    const goldData = await goldResp.json();
+
+    const btc = cg.bitcoin;
+    const eth = cg.ethereum;
+    const goldPrice = goldData.price || 0;
+
+    // Update price cards
+    updatePriceCard('btc', btc.usd, btc.usd_24h_change);
+    updatePriceCard('eth', eth.usd, eth.usd_24h_change);
+    updatePriceCard('gold', goldPrice, 0);
+
+    // Generate data-driven commentary
+    const btcDir = btc.usd_24h_change >= 0 ? 'up' : 'down';
+    const ethDir = eth.usd_24h_change >= 0 ? 'up' : 'down';
+    const goldDir = goldPrice >= 0 ? 'up' : 'down';
+
+    const now = new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
+    const commentary =
+      `🕐 Updated: ${now} (Bangkok) — ` +
+      `BTC at $${btc.usd.toLocaleString()} (${btc.usd_24h_change >= 0 ? '+' : ''}${btc.usd_24h_change.toFixed(2)}%), ` +
+      `ETH at $${eth.usd.toLocaleString()} (${eth.usd_24h_change >= 0 ? '+' : ''}${eth.usd_24h_change.toFixed(2)}%), ` +
+      `Gold at $${goldPrice.toLocaleString()}. ` +
+      `${btc.usd_24h_change > 2 ? 'BTC showing strong bullish momentum.' : btc.usd_24h_change < -2 ? 'BTC under selling pressure.' : 'BTC trading in range.'} ` +
+      `${eth.usd_24h_change > 3 ? 'ETH outperforming today.' : eth.usd_24h_change < -3 ? 'ETH facing resistance.' : 'ETH relatively stable.'} ` +
+      `Gold remains a key macro hedge in the current environment.`;
+
+    textEl.textContent = commentary;
+    showToast('✅ Prices & commentary updated!');
+  } catch (err) {
+    showToast('⚠️ Could not refresh — check your connection');
+    console.error(err);
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+function updatePriceCard(asset, price, change24h) {
+  const cards = {
+    btc: { selector: '.price-card.btc', symbol: 'BTC' },
+    eth: { selector: '.price-card.eth', symbol: 'ETH' },
+    gold: { selector: '.price-card.gold', symbol: 'XAU' },
+  };
+  const card = document.querySelector(cards[asset].selector);
+  if (!card) return;
+
+  const priceEl = card.querySelector('.price-value');
+  const changeEl = card.querySelector('.price-change');
+
+  const fmtPrice = price >= 1000 ? `$${price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : `$${price.toFixed(2)}`;
+  const sign = change24h >= 0 ? '+' : '';
+  const arrow = change24h >= 0 ? '▲' : '▼';
+  const color = change24h >= 0 ? '#22c55e' : '#ef4444';
+  const cls = change24h >= 0 ? 'up' : 'down';
+
+  priceEl.textContent = fmtPrice;
+  changeEl.textContent = `${arrow} ${sign}${change24h.toFixed(2)}%`;
+  changeEl.style.color = color;
+  changeEl.className = `price-change ${cls}`;
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
