@@ -134,7 +134,7 @@ footer a{color:#58a6ff;text-decoration:none}
   <div class="table-wrap" id="perfTableWrap">
     <table id="perfTable">
       <thead>
-        <tr><th>Asset</th><th>Type</th><th>Source</th><th class="right">Qty</th><th class="right">Cost/Unit (USD)</th><th class="right">Cost/Unit (THB)</th><th class="right">Total Cost (THB)</th><th class="right">Current Value (THB)</th><th class="right">P&amp;L (THB)</th><th class="right">%</th><th class="right">Alloc %</th></tr>
+        <tr><th>ชื่อย่อ</th><th>ประเภท</th><th>Source</th><th class="right">Qty</th><th class="right">Cost/Unit (USD)</th><th class="right">Cost/Unit (THB)</th><th class="right">Total Cost (THB)</th><th class="right">Current Value (THB)</th><th class="right">P&amp;L (THB)</th><th class="right">%</th><th class="right">Alloc %</th></tr>
       </thead>
       <tbody id="perfBody"></tbody>
     </table>
@@ -157,6 +157,24 @@ footer a{color:#58a6ff;text-decoration:none}
           <option value="GOLD">🥇 Gold</option>
           <option value="BOND">📜 Bond</option>
           <option value="CASH">💵 Cash/FD</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>ประเภท <span style="color:#22c55e">(fund type)</span></label>
+        <select id="f_fundType">
+          <option value="">— Select —</option>
+          <option value="RMF">📜 RMF</option>
+          <option value="General">📦 General</option>
+          <option value="TESG">🌱 TESG</option>
+          <option value="SSFX">🏛️ SSFX</option>
+          <option value="TESGX">🌱 TESGX</option>
+          <option value="LTF">📜 LTF</option>
+          <option value="SSF">📜 SSF</option>
+          <option value="Stock">📈 Stock</option>
+          <option value="Crypto">₿ Crypto</option>
+          <option value="Gold">🥇 Gold</option>
+          <option value="Bond">📜 Bond</option>
+          <option value="Cash">💵 Cash</option>
         </select>
       </div>
       <div class="form-group">
@@ -215,7 +233,7 @@ footer a{color:#58a6ff;text-decoration:none}
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Name</th><th>Ticker</th><th>Class</th><th>Source</th><th class="right">Qty</th><th class="right">Cost/Unit</th><th class="right">Total Cost</th><th>Curr</th><th></th></tr>
+        <tr><th>ชื่อย่อ</th><th>ประเภท</th><th>Class</th><th>Source</th><th class="right">Qty</th><th class="right">Cost/Unit</th><th class="right">Total Cost</th><th>Curr</th><th></th></tr>
       </thead>
       <tbody id="posBody"></tbody>
     </table>
@@ -329,6 +347,7 @@ const SOURCE_ICONS = {
   KKP: '🏦', DIME: '🥇', SAXO: '📈', KRUNGSRI: '🏦',
   BITKUB: '₿'
 };
+const DEFAULT_FUNDTYPE = { SET: 'Stock', US: 'Stock', MUTUAL: 'General', LTF: 'RMF', CRYPTO: 'Crypto', GOLD: 'Gold', BOND: 'Bond', CASH: 'Cash' };
 
 let portfolio = [];
 let plan = { target: 0, contrib: 0, years: 10 };
@@ -348,6 +367,10 @@ function getPortfolio() {
     for (const p of portfolio) {
       if (!p.source) {
         p.source = DEFAULT_SOURCE[p.assetClass] || 'KKP';
+        changed = true;
+      }
+      if (!p.fundType) {
+        p.fundType = DEFAULT_FUNDTYPE[p.assetClass] || 'General';
         changed = true;
       }
     }
@@ -513,8 +536,8 @@ async function renderDashboard() {
     const costPerUnitThb = r.currency === 'USD' ? r.costPerUnit * fxRate : r.costPerUnit;
     const srcIcon = SOURCE_ICONS[r.source] || '📂';
     tbody += `<tr>
-      <td><strong>${r.ticker}</strong><br><span style="font-size:10px;color:#8b949e">${r.name || ''}</span></td>
-      <td><span style="font-size:11px;color:${CLASS_COLORS[r.assetClass]}">${CLASS_NAMES[r.assetClass] || r.assetClass}</span></td>
+      <td><strong>${r.ticker}</strong>${r.name ? '<br><span style="font-size:10px;color:#8b949e">'+r.name+'</span>' : ''}</td>
+      <td><span style="font-size:11px;color:${CLASS_COLORS[r.assetClass]}">${r.fundType || r.assetClass}</span></td>
       <td style="font-size:11px">${r.source ? srcIcon + ' ' + r.source : '<span style="color:#484f58">—</span>'}</td>
       <td class="right">${r.quantity}</td>
       <td class="right">$${r.currency === 'USD' ? fmt(r.costPerUnit) : fmt(r.costPerUnit / fxRate)}</td>
@@ -627,7 +650,7 @@ function renderPositions() {
   portfolio = getPortfolio();
   if (portfolio.length === 0) {
     document.getElementById('posBody').innerHTML =
-      '<tr><td colspan="9" class="empty-msg">No positions yet. Use the form above or load demo data below.</td></tr>';
+      '<tr><td colspan="10" class="empty-msg">No positions yet. Use the form above or load demo data below.</td></tr>';
     return;
   }
   let tbody = '';
@@ -635,8 +658,8 @@ function renderPositions() {
     const srcIcon = SOURCE_ICONS[p.source] || '📂';
     tbody += `<tr>
       <td><strong>${p.ticker}</strong>${p.name ? '<br><span style="font-size:10px;color:#8b949e">'+p.name+'</span>' : ''}</td>
-      <td>${p.ticker}</td>
-      <td><span style="color:${CLASS_COLORS[p.assetClass]}">${CLASS_NAMES[p.assetClass] || p.assetClass}</span></td>
+      <td><span style="color:${CLASS_COLORS[p.assetClass]}">${p.fundType || CLASS_NAMES[p.assetClass] || p.assetClass}</span></td>
+      <td><span style="font-size:11px;color:${CLASS_COLORS[p.assetClass]}">${CLASS_NAMES[p.assetClass] || p.assetClass}</span></td>
       <td>${p.source ? srcIcon + ' ' + p.source : '<span style="color:#484f58">—</span>'}</td>
       <td class="right">${p.quantity}</td>
       <td class="right">${p.currency === 'USD' ? '$' : '฿'}${fmt(p.costPerUnit)}</td>
@@ -653,6 +676,7 @@ function renderPositions() {
 
 function savePosition() {
   const cls = document.getElementById('f_class').value;
+  const fundType = document.getElementById('f_fundType').value;
   const source = document.getElementById('f_source').value;
   const ticker = document.getElementById('f_ticker').value.trim().toUpperCase();
   const name = document.getElementById('f_name').value.trim();
@@ -663,23 +687,21 @@ function savePosition() {
   const notes = document.getElementById('f_notes').value.trim();
 
   if (!ticker || !qty || !cost) { alert('Please fill ticker, quantity, and cost'); return; }
-  if (!source) { alert('Please select an Asset Source (e.g. KKP, Dime, etc.)'); return; }
+  if (!source) { alert('Please select an Asset Source'); return; }
 
   portfolio = getPortfolio();
 
   if (editingId) {
-    // Update existing
     const idx = portfolio.findIndex(p => p.id === editingId);
     if (idx >= 0) {
-      portfolio[idx] = { ...portfolio[idx], assetClass: cls, source, ticker, name, quantity: qty, costPerUnit: cost, currency: curr, dateAcquired: date, notes };
+      portfolio[idx] = { ...portfolio[idx], assetClass: cls, fundType: fundType || DEFAULT_FUNDTYPE[cls] || 'General', source, ticker, name, quantity: qty, costPerUnit: cost, currency: curr, dateAcquired: date, notes };
     }
     editingId = null;
     document.getElementById('formTitle').textContent = '➕ Add Position';
   } else {
-    // New
     portfolio.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
-      assetClass: cls, source, ticker, name, quantity: qty, costPerUnit: cost,
+      assetClass: cls, fundType: fundType || DEFAULT_FUNDTYPE[cls] || 'General', source, ticker, name, quantity: qty, costPerUnit: cost,
       currency: curr, dateAcquired: date, notes
     });
   }
@@ -696,6 +718,7 @@ function editPos(id) {
   editingId = id;
   document.getElementById('formTitle').textContent = '✏️ Edit Position';
   document.getElementById('f_class').value = p.assetClass;
+  document.getElementById('f_fundType').value = p.fundType || '';
   document.getElementById('f_source').value = p.source || '';
   document.getElementById('f_ticker').value = p.ticker;
   document.getElementById('f_name').value = p.name || '';
@@ -721,6 +744,7 @@ function cancelEdit() {
 
 function clearForm() {
   document.getElementById('f_class').value = 'SET';
+  document.getElementById('f_fundType').value = '';
   document.getElementById('f_source').value = '';
   document.getElementById('f_ticker').value = '';
   document.getElementById('f_name').value = '';
@@ -733,14 +757,14 @@ function clearForm() {
 function loadDemoData() {
   if (!confirm('Load demo data? This will replace your current portfolio.')) return;
   portfolio = [
-    { id: 'demo1', assetClass: 'SET', source: 'KKP', ticker: 'ADVANC', name: 'Advanced Info Service', quantity: 500, costPerUnit: 220, currency: 'THB', dateAcquired: '2023-06-15', notes: 'Dividend stock' },
-    { id: 'demo2', assetClass: 'SET', source: 'KKP', ticker: 'PTT', name: 'PTT PCL', quantity: 2000, costPerUnit: 35, currency: 'THB', dateAcquired: '2023-01-10', notes: 'Energy' },
-    { id: 'demo3', assetClass: 'US', source: 'DIME', ticker: 'AAPL', name: 'Apple Inc.', quantity: 50, costPerUnit: 175, currency: 'USD', dateAcquired: '2024-03-01', notes: 'Tech' },
-    { id: 'demo4', assetClass: 'US', source: 'IBKR', ticker: 'VTI', name: 'Vanguard Total Stock Market ETF', quantity: 20, costPerUnit: 255, currency: 'USD', dateAcquired: '2024-06-01', notes: 'US Index' },
-    { id: 'demo5', assetClass: 'CRYPTO', source: 'BINANCE', ticker: 'BTC-USD', name: 'Bitcoin', quantity: 0.5, costPerUnit: 65000, currency: 'USD', dateAcquired: '2024-01-15', notes: '' },
-    { id: 'demo6', assetClass: 'GOLD', source: 'DIME', ticker: 'XAU', name: 'Gold', quantity: 10, costPerUnit: 4000, currency: 'USD', dateAcquired: '2024-05-01', notes: 'Physical gold' },
-    { id: 'demo7', assetClass: 'BOND', source: 'IBKR', ticker: 'BND', name: 'Vanguard Total Bond ETF', quantity: 100, costPerUnit: 72, currency: 'USD', dateAcquired: '2024-02-01', notes: 'US bonds' },
-    { id: 'demo8', assetClass: 'CASH', source: 'SCB', ticker: 'FD', name: 'Fixed Deposit', quantity: 1, costPerUnit: 500000, currency: 'THB', dateAcquired: '2024-07-01', notes: '1yr FD 2.5%' },
+    { id: 'demo1', assetClass: 'SET', fundType: 'Stock', source: 'KKP', ticker: 'ADVANC', name: 'Advanced Info Service', quantity: 500, costPerUnit: 220, currency: 'THB', dateAcquired: '2023-06-15', notes: 'Dividend stock' },
+    { id: 'demo2', assetClass: 'SET', fundType: 'Stock', source: 'KKP', ticker: 'PTT', name: 'PTT PCL', quantity: 2000, costPerUnit: 35, currency: 'THB', dateAcquired: '2023-01-10', notes: 'Energy' },
+    { id: 'demo3', assetClass: 'US', fundType: 'Stock', source: 'DIME', ticker: 'AAPL', name: 'Apple Inc.', quantity: 50, costPerUnit: 175, currency: 'USD', dateAcquired: '2024-03-01', notes: 'Tech' },
+    { id: 'demo4', assetClass: 'US', fundType: 'Stock', source: 'SAXO', ticker: 'VTI', name: 'Vanguard Total Stock Market ETF', quantity: 20, costPerUnit: 255, currency: 'USD', dateAcquired: '2024-06-01', notes: 'US Index' },
+    { id: 'demo5', assetClass: 'CRYPTO', fundType: 'Crypto', source: 'BITKUB', ticker: 'BTC-USD', name: 'Bitcoin', quantity: 0.5, costPerUnit: 65000, currency: 'USD', dateAcquired: '2024-01-15', notes: '' },
+    { id: 'demo6', assetClass: 'GOLD', fundType: 'Gold', source: 'DIME', ticker: 'XAU', name: 'Gold', quantity: 10, costPerUnit: 4000, currency: 'USD', dateAcquired: '2024-05-01', notes: 'Physical gold' },
+    { id: 'demo7', assetClass: 'BOND', fundType: 'Bond', source: 'SAXO', ticker: 'BND', name: 'Vanguard Total Bond ETF', quantity: 100, costPerUnit: 72, currency: 'USD', dateAcquired: '2024-02-01', notes: 'US bonds' },
+    { id: 'demo8', assetClass: 'CASH', fundType: 'Cash', source: 'KKP', ticker: 'FD', name: 'Fixed Deposit', quantity: 1, costPerUnit: 500000, currency: 'THB', dateAcquired: '2024-07-01', notes: '1yr FD 2.5%' },
   ];
   savePortfolio();
   renderPositions();
@@ -958,9 +982,9 @@ function saveFx() {
 function exportCSV() {
   portfolio = getPortfolio();
   if (portfolio.length === 0) { alert('No positions to export'); return; }
-  let csv = 'Asset Class,Source,Ticker,Name,Quantity,Cost per Unit,Currency,Date Acquired,Notes\n';
+  let csv = 'Asset Class,Fund Type,Source,Ticker,Name,Quantity,Cost per Unit,Currency,Date Acquired,Notes\n';
   for (const p of portfolio) {
-    csv += `${p.assetClass},${p.source || ''},${p.ticker},"${p.name || ''}",${p.quantity},${p.costPerUnit},${p.currency},${p.dateAcquired || ''},"${p.notes || ''}"\n`;
+    csv += `${p.assetClass},${p.fundType || ''},${p.source || ''},${p.ticker},"${p.name || ''}",${p.quantity},${p.costPerUnit},${p.currency},${p.dateAcquired || ''},"${p.notes || ''}"\n`;
   }
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
@@ -984,16 +1008,17 @@ function handleImport(e) {
       const cols = lines[i].split(',');
       if (cols.length < 4) continue;
       const cls = cols[0].trim();
-      const source = (cols[1] || '').trim();
-      const ticker = cols[2].trim().toUpperCase();
-      const name = cols[3] ? cols[3].replace(/"/g, '') : '';
-      const qty = parseFloat(cols[4]);
-      const cost = parseFloat(cols[5]);
-      const curr = (cols[6] || 'THB').trim();
-      const date = cols[7] ? cols[7].trim() : '';
-      const notes = cols[8] ? cols[8].replace(/"/g, '').trim() : '';
+      const fundType = (cols[1] || '').trim();
+      const source = (cols[2] || '').trim();
+      const ticker = cols[3].trim().toUpperCase();
+      const name = cols[4] ? cols[4].replace(/"/g, '') : '';
+      const qty = parseFloat(cols[5]);
+      const cost = parseFloat(cols[6]);
+      const curr = (cols[7] || 'THB').trim();
+      const date = cols[8] ? cols[8].trim() : '';
+      const notes = cols[9] ? cols[9].replace(/"/g, '').trim() : '';
       if (!ticker || isNaN(qty) || isNaN(cost)) continue;
-      newPortfolio.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), assetClass: cls, source, ticker, name, quantity: qty, costPerUnit: cost, currency: curr, dateAcquired: date, notes });
+      newPortfolio.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), assetClass: cls, fundType, source, ticker, name, quantity: qty, costPerUnit: cost, currency: curr, dateAcquired: date, notes });
     }
     if (newPortfolio.length > 0) {
       portfolio = newPortfolio;
